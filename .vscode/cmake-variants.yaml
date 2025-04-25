@@ -1,0 +1,45 @@
+target:
+  default: RA8M1
+  choices:
+    RA8M1:
+      short: RA8M1
+      long: RA8M1
+      settings:
+        TARGET: RA8M1
+    QEMU_M55:
+      short: QEMU_M55
+      long: QEMU_M55
+      settings:
+        TARGET: QEMU_M55
+
+buildType:
+  default: Release
+  choices:
+    Debug:
+      short: Debug
+      long: Debug
+      settings:
+        CMAKE_BUILD_TYPE: Debug
+    Release:
+      short: Release
+      long: Release
+      settings:
+        CMAKE_BUILD_TYPE: Release
+
+compiler:
+  default: gcc
+  choices:
+    gcc:
+      short: gcc
+      long: gcc
+      settings:
+        CMAKE_TOOLCHAIN_FILE: cmake/gcc.cmake
+      env:
+        ARM_GCC_TOOLCHAIN_PATH: /opt/homebrew/bin
+    clang:
+      short: clang
+      long: clang
+      settings:
+        CMAKE_TOOLCHAIN_FILE: cmake/llvm.cmake
+      env:
+        ARM_LLVM_TOOLCHAIN_PATH: /Applications/LLVM-ET-Arm-19.1.1-Darwin-universal/bin

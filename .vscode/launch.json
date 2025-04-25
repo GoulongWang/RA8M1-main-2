@@ -1,0 +1,59 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "renesas-hardware",
+      "request": "launch",
+      "name": "Renesas GDB Debugging",
+      "target": {
+        "device": "R7FA8M1AH",
+        "debuggerType": "SEGGERJLINKARM",
+        "deviceFamily": "RA"
+      }
+    },
+    {
+      "name": "Debug (JLinkGDBServer, remote)",
+      "type": "cortex-debug",
+      "request": "launch",
+      "servertype": "external",
+      // "servertype": "jlink",
+      // "ipAddress": "127.0.0.1",
+      "gdbTarget": "127.0.0.1:2331",
+      "cwd": "${workspaceFolder}",
+      "executable": "${command:cmake.launchTargetPath}",
+      "device": "R7FA8M1AH",
+      "runToEntryPoint": "main",
+      "preLaunchTask": "RTT terminal",
+      "postDebugTask": "Stop JLinkGDBServer",
+      "overrideLaunchCommands": [
+        "monitor halt",
+        "monitor reset", // This line may be optional, but safer
+        "-target-download",
+        "monitor reset" // You can use an optional reset-type but default is 0
+      ],
+      "overrideResetCommands": [
+        "monitor reset",
+      ],
+      "overrideRestartCommands": [
+        "monitor reset",
+      ],
+    },
+    {
+      "name": "Debug (QEMU)",
+      "type": "cortex-debug",
+      "request": "launch",
+      "servertype": "qemu",
+      "cwd": "${workspaceFolder}",
+      "executable": "${command:cmake.launchTargetPath}",
+      "runToEntryPoint": "main",
+      "showDevDebugOutput": "none",
+      "machine": "mps3-an547",
+      "cpu": "cortex-m55",
+      "serverArgs": [
+          "-semihosting",
+          "-semihosting-config",
+          "enable=on,target=native"
+      ]
+  }
+  ]
+}

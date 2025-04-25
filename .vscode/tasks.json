@@ -1,0 +1,180 @@
+{
+  "tasks": [
+    {
+      "type": "cmake",
+      "command": "build",
+      "group": "none",
+      "label": "FSP Smart Configurator",
+      "detail": "Edit configuration in FSP Smart Configurator",
+      "targets": [
+        "rasc"
+      ],
+      "presentation": {
+        "reveal": "silent",
+        "showReuseMessage": false,
+        "clear": false,
+        "panel": "shared",
+        "echo": false,
+        "focus": false
+      }
+    },
+    {
+      "type": "shell",
+      "command": "cmake -P cmake/prebuild.cmake",
+      "group": "none",
+      "label": "Regenerate Project Content"
+    },
+    {
+      "type": "cmake",
+      "command": "configure",
+      "group": "none",
+      "label": "Configure Project"
+    },
+    {
+      "type": "cmake",
+      "command": "build",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "label": "Build Project",
+      "dependsOn": [
+        "Configure Project"
+      ]
+    },
+    {
+      "label": "JLinkGDBServer (remote)",
+      "type": "shell",
+      "command": "${workspaceFolder}/RA8M1/shell-script/jlink-gdb-server.sh",
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "cpp",
+        "pattern": {
+          "regexp": "^\\s*(Warning|Error):\\s+(.*)$",
+          "severity": 1,
+          "message": 2
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "SEGGER J-Link GDB Server.*",
+          "endsPattern": "Connected to target"
+        }
+      },
+    },
+    {
+      "label": "RTT terminal",
+      "type": "shell",
+      "command": "telnet",
+      "args": [
+        "127.0.0.1",
+        "19021"
+      ],
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "cpp",
+        "pattern": {
+          "regexp": "^\\s*(Warning|Error):\\s+(.*)$",
+          "severity": 1,
+          "message": 2
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "Trying .*",
+          "endsPattern": "Process: JLink.*Exe"
+        }
+      },
+      "presentation": {
+        "clear": true,
+        "close": false,
+        "focus": true,
+        "panel": "dedicated",
+        "reveal": "always",
+      },
+      "dependsOn": [
+        "JLinkGDBServer (remote)"
+      ]
+    },
+    {
+      "label": "JLink Commander",
+      "type": "shell",
+      "command": "${workspaceFolder}/RA8M1/shell-script/jlink-commander.sh",
+      "args": [
+        "${workspaceFolder}/build/Debug/bench_ra8m1.elf"
+      ],
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "cpp",
+        "pattern": {
+          "regexp": "^\\s*(Warning|Error):\\s+(.*)$",
+          "severity": 1,
+          "message": 2
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "SEGGER J-Link Commander.*",
+          "endsPattern": "Sleep.*"
+        }
+      },
+    },
+    {
+      "label": "Run benchmarks",
+      "type": "shell",
+      "command": "telnet",
+      "args": [
+        "127.0.0.1",
+        "19021"
+      ],
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "cpp",
+        "pattern": {
+          "regexp": "^\\s*(Warning|Error):\\s+(.*)$",
+          "severity": 1,
+          "message": 2
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "Trying .*",
+          "endsPattern": "Process: JLinkGDBServerCLExe"
+        }
+      },
+      "presentation": {
+        "clear": true,
+        "close": false,
+        "focus": true,
+        "panel": "dedicated",
+        "reveal": "always",
+      },
+      "dependsOn": [
+        "JLink Commander"
+      ]
+    },
+    {
+      "label": "Stop JLinkGDBServer",
+      "type": "shell",
+      "command": "echo ${input:stopJLinkGDBServer}",
+      "problemMatcher": [],
+    },
+    {
+      "label": "Run all tests",
+      "command": "${command:testing.runAll}",
+      "dependsOn": [
+          "CMake build"
+      ],
+      "problemMatcher": [],
+      "group": {
+          "kind": "test",
+          "isDefault": true
+    }
+  }
+  ],
+  "inputs": [
+    {
+      "id": "stopJLinkGDBServer",
+      "type": "command",
+      "command": "workbench.action.tasks.terminate",
+      "args": "JLinkGDBServer (remote)"
+    },
+  ],
+  "version": "2.0.0"
+}
