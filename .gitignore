@@ -3,3 +3,6 @@
 *.elf
 *.a
 build/
+
+# CMake compile database
+compile_commands.json
