@@ -20,7 +20,14 @@ uint8_t nonce[12] ALIGNED(4) DTCM_DATA;
 ITCM_FN int main(void) {
     Utils_Init();
     PMU_Init();
-    printf("good\n");
+
+    while (1) {
+        bench(TestClockAXb());
+        AxB();
+        delay_ms(2000);
+
+        printf("\n");
+    }
 }
 
-#endif
+#endif  // UNIT_TEST
