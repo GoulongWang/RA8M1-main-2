@@ -19,7 +19,7 @@
 #define gf256v_add_mve _gf256v_add_u32_mve
 #define gf16v_madd _gf16v_madd_u32
 
-#define N_A_VEC_BYTE 16
+#define N_A_VEC_BYTE 16 // 2048
 #define N_A_WIDTH    96    
 #define TEST_RUN     100
 
