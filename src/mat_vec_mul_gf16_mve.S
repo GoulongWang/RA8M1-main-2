@@ -5,7 +5,7 @@
 .global gf16mat_prod_mve
 .type gf16mat_prod_mve, %function
 gf16mat_prod_mve:
-    push {r4, r5} 
+    push {r4-r7} 
     @ r0 = c
     @ r1 = matA
     @ r2 = n_A_vec_byte
@@ -23,9 +23,8 @@ gf16mat_prod_mve:
     sub r0, r0, #2048 // c
     add r5, r5, #1
 
-    // low-overhead branches
+    // TODO: low-overhead branches
     cmp r5, #96
     bne 0b
-1:
-    pop {r4, r5}
+    pop {r4-r7}
     bx lr

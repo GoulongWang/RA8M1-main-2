@@ -19,7 +19,7 @@
 #define gf256v_add_mve _gf256v_add_u32_mve
 #define gf16v_madd _gf16v_madd_u32
 
-#define N_A_VEC_BYTE 16 // 2048
+#define N_A_VEC_BYTE 512
 #define N_A_WIDTH    96    
 #define TEST_RUN     100
 
@@ -240,6 +240,8 @@ ITCM_FN int main(void) {
     uint8_t vec_c0[ N_A_VEC_BYTE ];
     uint8_t vec_c1[ N_A_VEC_BYTE ];
 
+    printf("%p %p %p %p\n", matA, vec_b, vec_c0, vec_c1);
+
     int fail = 0;
     for (int l = 1; l <= TEST_RUN; l++) {
         randombytes(matA, sizeof matA);
@@ -250,7 +252,7 @@ ITCM_FN int main(void) {
         gf16mat_prod_ref( vec_c0, matA, N_A_VEC_BYTE, N_A_WIDTH, vec_b );
         printf("l = %d\n", l);
 
-        //gf16mat_prod_mve( vec_c1, matA, N_A_VEC_BYTE, N_A_WIDTH, vec_b );  // stuck at N_A_VEC_BYTE 16
+        gf16mat_prod_mve( vec_c1, matA, N_A_VEC_BYTE, N_A_WIDTH, vec_b );  // stuck at N_A_VEC_BYTE 16
 
         // gf256v_add( vec_c0, vec_c1, N_A_VEC_BYTE );
 

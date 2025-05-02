@@ -620,7 +620,7 @@ SECTIONS
         /* Thread stacks */
         KEEP(*(.stack*))
         __StackTopAll = .;
-    } > DTCM
+    } > RAM
 
     PROVIDE(__stack = __StackTopAll);
 
