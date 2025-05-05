@@ -1,14 +1,14 @@
 #include "vec_scalar_mul_gf16_mve.i"
 
-.macro gf256v_set_zero_mve c, tmp0, tmp_vec0
-    mov \tmp0, #0
+.macro gf256v_set_zero_mve c, n_A_vec_byte, tmp0, tmp_vec0
+    vmov.u8 \tmp_vec0, #0
 
-    .rept 128
-    vdup.u8 \tmp_vec0, \tmp0
-    vldrb.u8 \tmp_vec0, [\c], #16
+    .set cnt, (\n_A_vec_byte >> 4)
+    .rept cnt
+    vstrb.u8 \tmp_vec0, [\c], #16
     .endr
 
-    sub \c, \c, #2048
+    sub \c, \c, \n_A_vec_byte
 .endm
 
 .macro gf16v_get_ele_mve out, vec_ptr,index, tmp0
@@ -20,27 +20,67 @@
     lsrne \out, \out, #4    // == 1 => 取上半 nibble
 .endm
 
-.macro gf16v_madd_mve c, matA, bb, tmp0, tmp_vec0, mask1_vec, mask2_vec, tmp_vec3, tmp_vec4, tmp_vec5, tmp_vec6, tmp_vec7
-    .rept 128
-
+.macro gf16v_madd_mve c, matA, bb, n_A_vec_byte, tmp_vec0, mask1_vec, mask2_vec, tmp_vec3, tmp_vec4, tmp_vec5, tmp_vec6, tmp_vec7
+    .set cnt, (\n_A_vec_byte >> 4)
+    .rept cnt
     vldrb.u8 \tmp_vec0, [\matA], #16
-
-    mov \tmp0, #0      
-	vdup.u8 \tmp_vec7, \tmp0 // 把 acc 歸零
-
-	mov \tmp0, #0x0f
-	vdup.u8 \mask1_vec, \tmp0
-
-	mov \tmp0, #3
-	vdup.u8 \mask2_vec, \tmp0
-    
-    vec_scalar_mul \tmp_vec7, \tmp_vec0, \bb, \tmp0, \mask1_vec, \mask2_vec, \tmp_vec3, \tmp_vec4, \tmp_vec5, \tmp_vec6
-    
+    vmov.u8 \tmp_vec7, #0 // 把 acc 歸零
+    vec_scalar_mul \tmp_vec7, \tmp_vec0, \bb, \mask1_vec, \mask2_vec, \tmp_vec3, \tmp_vec4, \tmp_vec5, \tmp_vec6
     vldrb.u8 \tmp_vec0, [\c]
     veor.u8 \tmp_vec7, \tmp_vec7, \tmp_vec0
     vstrb.u8 \tmp_vec7, [\c], #16
     .endr
 .endm
 
+.macro gf16mat_prod n_A_vec_byte, n_A_width
+    push {r4, r5} 
+    @ r0 = c
+    @ r1 = matA
+    @ r2 = b
+     
+    gf256v_set_zero_mve r0, \n_A_vec_byte, r3, q0
+    vmov.u8 q1, #0x0f // mask1_vec
+    vmov.u8 q2, #3    // mask2_vec
+    
+    mov r3,  #0
+0:
+    gf16v_get_ele_mve r4, r2, r3, r5
+    gf16v_madd_mve r0, r1, r4, \n_A_vec_byte, q0, q1, q2, q3, q4, q5, q6, q7
 
+    sub r0, r0, \n_A_vec_byte
+    add r3, r3, #1
 
+    // low-overhead branches
+    cmp r3, \n_A_width
+    bne 0b
+    
+    pop {r4, r5}
+    bx lr
+.endm
+
+.macro gf16mat_prod_32_X n_A_vec_byte
+    push {r4-r6} 
+    @ r0 = c
+    @ r1 = matA
+    @ r2 = b
+    @ r3 = n_A_width
+
+    gf256v_set_zero_mve r0, \n_A_vec_byte, r4, q0
+    vmov.u8 q1, #0x0f // mask1_vec
+    vmov.u8 q2, #3    // mask2_vec
+    
+    mov r4,  #0
+0:
+    gf16v_get_ele_mve r6, r2, r4, r5
+    gf16v_madd_mve r0, r1, r6, \n_A_vec_byte, q0, q1, q2, q3, q4, q5, q6, q7
+
+    sub r0, r0, \n_A_vec_byte
+    add r4, r4, #1
+
+    // low-overhead branches
+    cmp r4, r3
+    bne 0b
+    
+    pop {r4-r6}
+    bx lr
+.endm

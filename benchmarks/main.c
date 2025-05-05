@@ -19,7 +19,7 @@
 #define gf256v_add_mve _gf256v_add_u32_mve
 #define gf16v_madd _gf16v_madd_u32
 
-#define N_A_VEC_BYTE 512
+#define N_A_VEC_BYTE 512 // change this
 #define N_A_WIDTH    96    
 #define TEST_RUN     100
 
@@ -225,23 +225,21 @@ void gf16mat_prod_ref(uint8_t *c, const uint8_t *matA, unsigned n_A_vec_byte, un
         matA += n_A_vec_byte;
     }
 }
+void gf16mat_prod_2048_96(uint8_t *c, const uint8_t *matA, const uint8_t *b);
+void gf16mat_prod_48_64(uint8_t *c, const uint8_t *matA, const uint8_t *b);
+void gf16mat_prod_32_X(uint8_t *c, const uint8_t *matA, const uint8_t *b, size_t n_A_width);
 
-void gf16mat_prod_mve(uint8_t *c, const uint8_t *matA, unsigned n_A_vec_byte, unsigned n_A_width, const uint8_t *b);
 
 ITCM_FN int main(void) {
     Utils_Init();
     PMU_Init();
 
-    printf("====== unit test ======\n");
-    printf("gf16 matrix[%dx%d(byte)]-vector product test\n\n", N_A_WIDTH, N_A_VEC_BYTE );
-
-    uint8_t matA[ N_A_VEC_BYTE * N_A_WIDTH ];
-    uint8_t vec_b[ N_A_WIDTH / 2 ];
+    printf("=== UOV-Is: gf16mat_prod 2048_96 Unit Test ===\n");
+    uint8_t matA[ N_A_VEC_BYTE * N_A_WIDTH];
+    uint8_t vec_b[N_A_VEC_BYTE ];
     uint8_t vec_c0[ N_A_VEC_BYTE ];
     uint8_t vec_c1[ N_A_VEC_BYTE ];
-
-    printf("%p %p %p %p\n", matA, vec_b, vec_c0, vec_c1);
-
+    
     int fail = 0;
     for (int l = 1; l <= TEST_RUN; l++) {
         randombytes(matA, sizeof matA);
@@ -250,21 +248,15 @@ ITCM_FN int main(void) {
         memset(vec_c1, 0, sizeof(vec_c1));
         
         gf16mat_prod_ref( vec_c0, matA, N_A_VEC_BYTE, N_A_WIDTH, vec_b );
-        printf("l = %d\n", l);
-
-        gf16mat_prod_mve( vec_c1, matA, N_A_VEC_BYTE, N_A_WIDTH, vec_b );  // stuck at N_A_VEC_BYTE 16
-
-        // gf256v_add( vec_c0, vec_c1, N_A_VEC_BYTE );
-
-        // if ( !gf256v_is_zero( vec_c0, N_A_VEC_BYTE ) ) {
-        //     gf256v_add( vec_c0, vec_c1, N_A_VEC_BYTE );
-        //     printf("in-correct:\n");
-        //     fail = 1;
-        //     break;
-        //  }
+        gf16mat_prod_2048_96( vec_c1, matA, vec_b );    
+        
+        if (memcmp(vec_c0, vec_c1, N_A_VEC_BYTE)) {
+            fail = 1;
+            break;
+        }
     }
+    printf((fail) ? "TEST FAIL!\n" : "TEST PASS!\n"); 
 
-    printf((fail) ? "TEST FAIL.!\n" : "TEST PASS.\n");
     return( 0 );
 }
 #endif

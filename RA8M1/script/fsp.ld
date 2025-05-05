@@ -162,7 +162,7 @@ GROUP(libgcc.a libc.a libm.a)
 ENTRY(Reset_Handler)
 
 SECTIONS
-{
+{   
     .text :
     {
         __tz_FLASH_S = ABSOLUTE(FLASH_START);
@@ -395,7 +395,7 @@ SECTIONS
 
         /* Initialized DTCM data end */
         __dtcm_data_end = .;
-    } > DTCM AT > FLASH = 0x00
+    } > DTCM AT > FLASH = 0x00 /*test*/
 
     . = __dtcm_data_end;
     /* Uninitialized DTCM data. */
@@ -418,7 +418,7 @@ SECTIONS
          * DTCM_NS_START can be used to set a fixed address for non-secure DTCM in secure projects or flat projects.
          */
         __tz_DTCM_N = DEFINED(DTCM_NS_START) ? ABSOLUTE(DTCM_NS_START) : ALIGN(__dtcm_bss_end, 8192);
-    } > DTCM
+    } > DTCM /*test*/
 
     /* Addresses exported for DTCM initialization. */
     __dtcm_data_init_start = LOADADDR(.dtcm_data);
@@ -575,7 +575,7 @@ SECTIONS
         /* Place the FreeRTOS heap here so that the __HeapLimit calculation does not include the freertos heap. */
         KEEP(*(.heap.*))
         __noinit_end = .;
-    } > RAM
+    } > RAM 
 
     . = .;
     __nocache_pre_location = .;
@@ -587,7 +587,7 @@ SECTIONS
 
         . = ALIGN(32);
         __nocache_end = .;
-    } > RAM
+    } > RAM 
     . = (SIZEOF(.nocache) > 0) ? __nocache_end : __nocache_pre_location;
 
     .bss :
