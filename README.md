@@ -13,38 +13,4 @@ printf "Sleep 2000\nLoadFile bench_ra8m1.elf\ngo\nSleep 3600000" | JLinkExe -if 
 4. Open a new terminal and run:
 ```telnet 127.0.0.1 19021```
 
-### Reproducing the Error
-1. If I set the following definitions, it produces nothing as shown in the picture below:
-```
-#define N_A_VEC_BYTE 2048
-#define N_A_WIDTH    96   
-```
-
-In `src/mat_vec_mul_gf16_mve.S`
-```
-.global gf16mat_prod_2048_96
-.type gf16mat_prod_2048_96, %function
-gf16mat_prod_2048_96:
-    gf16mat_prod 2048, 96
-```
-![nothing](/nothing.png)
-
-2. When I reduce `N_A_VEC_BYTE` to 512
-```
-#define N_A_VEC_BYTE 512
-#define N_A_WIDTH    96   
-```
-
-In `src/mat_vec_mul_gf16_mve.S`
-```
-.global gf16mat_prod_2048_96
-.type gf16mat_prod_2048_96, %function
-gf16mat_prod_2048_96:
-    gf16mat_prod 512, 96
-```
-It produces `TEST PASS.`
-
-![testpass](/testpass.png)
-
-### What I've Tried
-- Moving `matA` to SRAM => it didn't work.
+### Performance
