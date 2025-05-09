@@ -5,7 +5,7 @@
 .global gf16mat_prod_2048_96
 .type gf16mat_prod_2048_96, %function
 gf16mat_prod_2048_96:
-    gf16mat_prod 512, 96 // change this
+    gf16mat_prod 2048, 96
 
 .global gf16mat_prod_48_64
 .type gf16mat_prod_48_64, %function
