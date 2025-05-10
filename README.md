@@ -13,4 +13,12 @@ printf "Sleep 2000\nLoadFile bench_ra8m1.elf\ngo\nSleep 3600000" | JLinkExe -if 
 4. Open a new terminal and run:
 ```telnet 127.0.0.1 19021```
 
-### Performance
+### Benchmark
+| Function   | Avg cycles in  MVE | Avg cycles in C |
+|------------|--------------------|-----------------|
+| UOV-Is: gf16mat_prod 2048_96  | 1287021 | 2688904 |
+| UOV-Is: gf16mat_prod 48_64    | 21075   |   50027 |
+| UOV-Is: gf16mat_prod 32_X     | 3848    |    8710 |
+| UOV-Ip: gf256mat_prod 1936_68 |  |  |
+| UOV-Ip: gf256mat_prod 68_44   |  |  |
+| UOV-Ip: gf256mat_prod 44_X    |  |  |
