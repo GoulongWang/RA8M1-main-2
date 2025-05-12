@@ -17,8 +17,8 @@
 #define gf256v_add _gf256v_add_u32
 #define gf256v_madd _gf256v_madd_u32
 
-#define N_A_VEC_BYTE 1376//44//68//1936
-#define N_A_WIDTH    68  //16//44//68
+#define N_A_VEC_BYTE 68//1936
+#define N_A_WIDTH    44//68
 #define TEST_RUN 100
 
 #define bench_cycles(CALL, OUT_VAR)                                                    \
@@ -218,14 +218,14 @@ ITCM_FN int main (void)
     PMU_Init();
     uint32_t sum_ref = 0, sum_mve = 0;
     uint32_t cycles;
+    int fail = 0;
 
-    printf("====== UOV-Ip: gf256mat_prod 1936_68 unit test ======\n");
+    /* printf("====== UOV-Ip: gf256mat_prod 1936_68 unit test ======\n");
+    uint8_t matA[ N_A_WIDTH * N_A_VEC_BYTE];
     uint8_t vec_b[ N_A_VEC_BYTE ];
     uint8_t vec_c0[ N_A_VEC_BYTE ];
     uint8_t vec_c1[ N_A_VEC_BYTE ];
-    uint8_t matA[ N_A_WIDTH * N_A_VEC_BYTE];
     
-    int fail = 0;
     for (int l = 1; l <= TEST_RUN; l++) {
         randombytes(vec_b, sizeof vec_b);
         randombytes(matA, sizeof matA);
@@ -236,6 +236,44 @@ ITCM_FN int main (void)
         bench_cycles(gf256mat_prod_ref( vec_c0, matA, N_A_VEC_BYTE, N_A_WIDTH, vec_b), cycles);
         sum_ref += cycles;
         bench_cycles(gf256mat_prod_1936_68(vec_c1, matA, vec_b), cycles);
+        sum_mve += cycles;
+
+        gf256v_add( vec_c0, vec_c1, N_A_VEC_BYTE );
+        if ( !gf256v_is_zero( vec_c0, N_A_VEC_BYTE ) ) {
+            gf256v_add( vec_c0, vec_c1, N_A_VEC_BYTE );
+            printf("test %d:\n", l);
+            printf("out_ref = ");
+            for (int i = 0; i < N_A_VEC_BYTE; i++) {
+                printf("%d ", vec_c0[i]);
+            }
+            printf("\n\n");
+            printf("out_mve = ");
+            for (int i = 0; i < N_A_VEC_BYTE; i++) {
+                printf("%d ", vec_c1[i]);
+            }
+            printf("\n");
+            fail = 1;
+            break;
+        }
+    }  */
+
+    /* 
+    printf("====== UOV-Ip: gf256mat_prod 68_44 unit test ======\n");
+    uint8_t matA[ N_A_WIDTH * N_A_VEC_BYTE];
+    uint8_t vec_b[ N_A_VEC_BYTE ];
+    uint8_t vec_c0[ N_A_VEC_BYTE ];
+    uint8_t vec_c1[ N_A_VEC_BYTE ];
+    
+    for (int l = 1; l <= TEST_RUN; l++) {
+        randombytes(vec_b, sizeof vec_b);
+        randombytes(matA, sizeof matA);
+
+        memset(vec_c0, 0, sizeof(vec_c0));
+        memset(vec_c1, 0, sizeof(vec_c1));
+
+        bench_cycles(gf256mat_prod_ref( vec_c0, matA, N_A_VEC_BYTE, N_A_WIDTH, vec_b), cycles);
+        sum_ref += cycles;
+        bench_cycles(gf256mat_prod_68_44(vec_c1, matA, vec_b), cycles);
         sum_mve += cycles;
 
         gf256v_add( vec_c0, vec_c1, N_A_VEC_BYTE );
@@ -256,18 +294,53 @@ ITCM_FN int main (void)
             fail = 1;
             break;
         }
+    } */
+
+    printf("====== UOV-Ip: gf256mat_prod 44_X unit test ======\n");
+    uint8_t N_A_VEC_BYTE_test = 44, N_A_WIDTH_test;
+    uint8_t vec_b[ N_A_VEC_BYTE_test ];
+    uint8_t vec_c0[ N_A_VEC_BYTE_test ];
+    uint8_t vec_c1[ N_A_VEC_BYTE_test ];
+    
+    for (int l = 1; l <= TEST_RUN; l++) {
+        randombytes(vec_b, sizeof vec_b);
+        randombytes(&N_A_WIDTH_test, sizeof(N_A_WIDTH_test));
+        N_A_WIDTH_test = N_A_WIDTH_test % 44 + 1;
+        uint8_t matA[ N_A_WIDTH_test * N_A_VEC_BYTE_test];
+        randombytes(matA, sizeof matA);
+
+        memset(vec_c0, 0, sizeof(vec_c0));
+        memset(vec_c1, 0, sizeof(vec_c1));
+
+        bench_cycles(gf256mat_prod_ref( vec_c0, matA, N_A_VEC_BYTE_test, N_A_WIDTH_test, vec_b), cycles);
+        sum_ref += cycles;
+        bench_cycles(gf256mat_prod_44_X(vec_c1, matA, vec_b, N_A_WIDTH_test), cycles);
+        sum_mve += cycles;
+
+        gf256v_add( vec_c0, vec_c1, N_A_VEC_BYTE_test );
+
+        if ( !gf256v_is_zero( vec_c0, N_A_VEC_BYTE_test ) ) {
+            gf256v_add( vec_c0, vec_c1, N_A_VEC_BYTE_test );
+            printf("test %d:\n", l);
+            printf("out_ref = ");
+            for (int i = 0; i < N_A_VEC_BYTE_test; i++) {
+                printf("%d ", vec_c0[i]);
+            }
+            printf("\n\n");
+            printf("out_mve = ");
+            for (int i = 0; i < N_A_VEC_BYTE_test; i++) {
+                printf("%d ", vec_c1[i]);
+            }
+            printf("\n");
+            fail = 1;
+            break;
+        }
     }
 
     printf((fail) ? "TEST FAIL.!\n" : "TEST PASS.\n");
     printf("Average ref cycles = %lu\n", sum_ref / TEST_RUN);
     printf("Average MVE cycles = %lu\n", sum_mve / TEST_RUN);
 
-    printf("DTCM   0x%08x - 0x%08x\n", 0x20000000, 0x20000000 + 0x10000 - 1);
-    printf("RAM    0x%08x - 0x%08x\n", 0x22000000, 0x22000000 + 0xE0000 - 1);
-    printf("matA   %p - %p\n", matA, matA + sizeof(matA) - 1);
-    printf("vec_b  %p - %p\n", vec_b, vec_b + sizeof(vec_b) - 1);
-    printf("vec_c0 %p - %p\n", vec_c0, vec_c0 + sizeof(vec_c0) - 1);
-    printf("vec_c1 %p - %p\n", vec_c1, vec_c1 + sizeof(vec_c1) - 1);
     return( 0 );
 }
 #endif

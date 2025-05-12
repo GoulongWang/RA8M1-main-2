@@ -3,10 +3,12 @@
 .macro gf256v_set_zero_mve c, tmp0, tmp_vec0, n_A_vec_byte
     vmov.u8 \tmp_vec0, #0
 
-    .set cnt, (\n_A_vec_byte >> 4)
-    .rept cnt
+    mov \tmp0, \n_A_vec_byte
+    lsr \tmp0, \tmp0, #4
+0:  
     vstrb.u8 \tmp_vec0, [\c], #16
-    .endr
+    subs \tmp0, \tmp0, #1
+    bne 0b
 
     // 處理餘數
     .set remainder, ((\n_A_vec_byte) & 0xF)
@@ -22,8 +24,10 @@
 .endm
 
 .macro gf256v_madd_mve c, matA, gf256_b, n_A_vec_byte, tmp0, tmp1, tmp2, tmp_vec0, tmp_vec1, mask_vec, mask_vec2
-    .set cnt, (\n_A_vec_byte >> 4)
-    .rept cnt
+    mov \tmp2, \n_A_vec_byte
+    lsr \tmp2, \tmp2, #4
+1:  
+    
     vldrb.u8 \tmp_vec0, [\matA], #16
     mov \tmp0, \gf256_b
 
@@ -32,7 +36,10 @@
     vldrb.u8 \tmp_vec0, [\c]
     veor.u8 \tmp_vec1, \tmp_vec1, \tmp_vec0
     vstrb.u8 \tmp_vec1, [\c], #16
-    .endr
+    
+    subs \tmp2, \tmp2, #1
+    bne 1b
+
 
     // 處理餘數 < 16 bytes
     .set remainder, ((\n_A_vec_byte) & 0xF)
@@ -69,11 +76,11 @@
     vmov.u8 q3, #0x1b // mask2
 
     mov r4, \n_A_width
-0:
+2:
  	ldrb r3, [r2], #1 
  	gf256v_madd_mve r0, r1, r3, \n_A_vec_byte, r5, r6, r7, q0, q1, q2, q3 
     subs r4, r4, #1
- 	bne 0b
+ 	bne 2b
 
 	pop {r4-r7}
     bx lr
@@ -90,11 +97,11 @@
     vmov.u8 q3, #0x1b // mask2
 
     mov r4, r3
-0:
+3:
  	ldrb r3, [r2], #1 
  	gf256v_madd_mve r0, r1, r3, \n_A_vec_byte, r5, r6, r7, q0, q1, q2, q3 
     subs r4, r4, #1
- 	bne 0b
+ 	bne 3b
 
 	pop {r4-r7}
     bx lr
