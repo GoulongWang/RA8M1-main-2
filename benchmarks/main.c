@@ -17,7 +17,7 @@
 #define gf256v_add _gf256v_add_u32
 #define gf256v_madd _gf256v_madd_u32
 
-#define N_A_VEC_BYTE 16//44//68//1936
+#define N_A_VEC_BYTE 1376//44//68//1936
 #define N_A_WIDTH    68  //16//44//68
 #define TEST_RUN 100
 
@@ -223,27 +223,20 @@ ITCM_FN int main (void)
     uint8_t vec_b[ N_A_VEC_BYTE ];
     uint8_t vec_c0[ N_A_VEC_BYTE ];
     uint8_t vec_c1[ N_A_VEC_BYTE ];
-    uint8_t N_A_WIDTH_test;
+    uint8_t matA[ N_A_WIDTH * N_A_VEC_BYTE];
     
     int fail = 0;
     for (int l = 1; l <= TEST_RUN; l++) {
         randombytes(vec_b, sizeof vec_b);
-        randombytes(&N_A_WIDTH_test, sizeof(N_A_WIDTH_test));
-        N_A_WIDTH_test = N_A_WIDTH_test % 44 + 1;
-        uint8_t matA[ N_A_WIDTH_test * N_A_VEC_BYTE];
         randombytes(matA, sizeof matA);
 
         memset(vec_c0, 0, sizeof(vec_c0));
         memset(vec_c1, 0, sizeof(vec_c1));
 
-        //bench_cycles(gf256mat_prod_ref( vec_c0, matA, N_A_VEC_BYTE, N_A_WIDTH_test, vec_b), cycles);
+        bench_cycles(gf256mat_prod_ref( vec_c0, matA, N_A_VEC_BYTE, N_A_WIDTH, vec_b), cycles);
         sum_ref += cycles;
-        //bench_cycles(gf256mat_prod_1936_68(vec_c1, matA, vec_b), cycles);
+        bench_cycles(gf256mat_prod_1936_68(vec_c1, matA, vec_b), cycles);
         sum_mve += cycles;
-
-        //gf256mat_prod_68_44(vec_c1, matA, vec_b);
-        //bench_cycles(gf256mat_prod_44_X(vec_c1, matA, vec_b, N_A_WIDTH_test), cycles);
-        
 
         gf256v_add( vec_c0, vec_c1, N_A_VEC_BYTE );
 
@@ -268,6 +261,13 @@ ITCM_FN int main (void)
     printf((fail) ? "TEST FAIL.!\n" : "TEST PASS.\n");
     printf("Average ref cycles = %lu\n", sum_ref / TEST_RUN);
     printf("Average MVE cycles = %lu\n", sum_mve / TEST_RUN);
+
+    printf("DTCM   0x%08x - 0x%08x\n", 0x20000000, 0x20000000 + 0x10000 - 1);
+    printf("RAM    0x%08x - 0x%08x\n", 0x22000000, 0x22000000 + 0xE0000 - 1);
+    printf("matA   %p - %p\n", matA, matA + sizeof(matA) - 1);
+    printf("vec_b  %p - %p\n", vec_b, vec_b + sizeof(vec_b) - 1);
+    printf("vec_c0 %p - %p\n", vec_c0, vec_c0 + sizeof(vec_c0) - 1);
+    printf("vec_c1 %p - %p\n", vec_c1, vec_c1 + sizeof(vec_c1) - 1);
     return( 0 );
 }
 #endif

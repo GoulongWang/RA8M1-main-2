@@ -22,3 +22,30 @@ printf "Sleep 2000\nLoadFile bench_ra8m1.elf\ngo\nSleep 3600000" | JLinkExe -if 
 | UOV-Ip: gf256mat_prod 1936_68 |  |  |
 | UOV-Ip: gf256mat_prod 68_44   |  |  |
 | UOV-Ip: gf256mat_prod 44_X    |  |  |
+
+### Reproducing the Error
+I'm testing **UOV-Ip: gf256mat_prod 1936_68** on Cortex-M85, but it produces the following error:
+![error](/error.png)
+
+### What I've tried
+1. Reduce `N_A_VEC_BYTE` to `944`, `960`,`976`, `992`, `1008` after which they ran successfully. <br>
+
+I made the following changes at these 2 files: <br>
+In `main.c`:
+```
+#define N_A_VEC_BYTE 944
+```
+
+In `src/mat_vec_mul_gf256_mve.S`:
+```
+.global gf256mat_prod_1936_68
+.type gf256mat_prod_1936_68, %function
+gf256mat_prod_1936_68:
+    gf256mat_prod 944, 68 // change this line
+```
+
+Result:
+![](/testpass.png)
+
+2. Reduce `N_A_VEC_BYTE` to `1376`, it fails
+3. Haven't tried from `1008` ~ `1376`
