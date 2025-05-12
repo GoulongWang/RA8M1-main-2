@@ -212,11 +212,15 @@ void gf256mat_prod_1936_68(uint8_t *c, const uint8_t *matA, const uint8_t *b);
 void gf256mat_prod_68_44(uint8_t *c, const uint8_t *matA, const uint8_t *b);
 void gf256mat_prod_44_X(uint8_t *c, const uint8_t *matA, const uint8_t *b, size_t n_A_width);
 
+void gf256mat_prod_m4f_1936_68_normal_normal(uint32_t *c, uint32_t *a, uint8_t *b);
+void gf256mat_prod_m4f_68_44_normal_normal(uint32_t *c, uint32_t *a, uint8_t *b);
+void gf256mat_prod_m4f_44_X_normal_normal(uint32_t *c, uint32_t *a, uint8_t *b, size_t n_A_width);
+
 ITCM_FN int main (void)
 {
     Utils_Init();
     PMU_Init();
-    uint32_t sum_ref = 0, sum_mve = 0;
+    uint32_t sum_ref = 0, sum_mve = 0, sum_m4 = 0;
     uint32_t cycles;
     int fail = 0;
 
@@ -316,6 +320,8 @@ ITCM_FN int main (void)
         sum_ref += cycles;
         bench_cycles(gf256mat_prod_44_X(vec_c1, matA, vec_b, N_A_WIDTH_test), cycles);
         sum_mve += cycles;
+        bench_cycles(gf256mat_prod_m4f_44_X_normal_normal((uint32_t *)vec_c1, (uint32_t *)matA, vec_b, N_A_WIDTH_test), cycles);
+        sum_m4 += cycles;
 
         gf256v_add( vec_c0, vec_c1, N_A_VEC_BYTE_test );
 
@@ -340,6 +346,7 @@ ITCM_FN int main (void)
     printf((fail) ? "TEST FAIL.!\n" : "TEST PASS.\n");
     printf("Average ref cycles = %lu\n", sum_ref / TEST_RUN);
     printf("Average MVE cycles = %lu\n", sum_mve / TEST_RUN);
+    printf("Average M4 cycles = %lu\n", sum_m4 / TEST_RUN);
 
     return( 0 );
 }
