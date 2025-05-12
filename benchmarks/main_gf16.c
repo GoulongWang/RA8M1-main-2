@@ -23,18 +23,6 @@
 #define N_A_WIDTH    96       //64 //96    
 #define TEST_RUN     100
 
-#define MEASURE_CYCLES(CALL, OUT_VAR)                           \
-    do {                                                        \
-        __disable_irq();                                        \
-        ARM_PMU_CYCCNT_Reset();                                 \
-        ARM_PMU_CNTR_Enable(PMU_CNTENSET_CCNTR_ENABLE_Msk);     \
-        CALL;                                                   \
-        ARM_PMU_CNTR_Disable(PMU_CNTENCLR_CCNTR_ENABLE_Msk);    \
-        OUT_VAR = ARM_PMU_Get_CCNTR();                          \
-        __enable_irq();                                         \
-    } while (0)
-
-
 #define bench_cycles(CALL, OUT_VAR)                                                    \
     do {                                                               \
         __disable_irq();                                               \
@@ -258,11 +246,15 @@ void gf16mat_prod_2048_96(uint8_t *c, const uint8_t *matA, const uint8_t *b);
 void gf16mat_prod_48_64(uint8_t *c, const uint8_t *matA, const uint8_t *b);
 void gf16mat_prod_32_X(uint8_t *c, const uint8_t *matA, const uint8_t *b, size_t n_A_width);
 
+void gf16mat_prod_m4f_2048_96_normal_normal(uint32_t *c, uint32_t *a, uint8_t *b);
+void gf16mat_prod_m4f_48_64_normal_normal(uint32_t *c, uint32_t *a, uint8_t *b);
+void gf16mat_prod_m4f_32_X_normal_normal(uint8_t *c, const uint8_t *matA, const uint8_t *b, size_t n_A_width);
+
 ITCM_FN int main(void) {
     Utils_Init();
     PMU_Init();
 
-    uint32_t sum_ref = 0, sum_mve = 0;
+    uint32_t sum_ref = 0, sum_mve = 0, sum_m4 = 0;
     uint32_t cycles;
     int fail = 0;
 
@@ -271,17 +263,21 @@ ITCM_FN int main(void) {
     uint8_t vec_b[N_A_VEC_BYTE ];
     uint8_t vec_c0[ N_A_VEC_BYTE ];
     uint8_t vec_c1[ N_A_VEC_BYTE ];
+    uint8_t vec_c2[ N_A_VEC_BYTE ];
     
     for (int l = 1; l <= TEST_RUN; l++) {
         randombytes(matA, sizeof matA);
         randombytes(vec_b, sizeof vec_b);
         memset(vec_c0, 0, sizeof(vec_c0));
         memset(vec_c1, 0, sizeof(vec_c1));
+        memset(vec_c2, 0, sizeof(vec_c2));
         
-        bench_cycles(gf16mat_prod_ref( vec_c0, matA, N_A_VEC_BYTE, N_A_WIDTH, vec_b ), cycles);
+        //bench_cycles(gf16mat_prod_ref( vec_c0, matA, N_A_VEC_BYTE, N_A_WIDTH, vec_b ), cycles);
         sum_ref += cycles;
-        bench_cycles(gf16mat_prod_2048_96( vec_c1, matA, vec_b ), cycles);    
+        //bench_cycles(gf16mat_prod_2048_96( vec_c1, matA, vec_b ), cycles);    
         sum_mve += cycles;
+        bench_cycles(gf16mat_prod_m4f_2048_96_normal_normal((uint32_t *)vec_c2, (uint32_t *)matA, vec_b), cycles);
+        sum_m4 += cycles;
         
         if (memcmp(vec_c0, vec_c1, N_A_VEC_BYTE)) {
             fail = 1;
@@ -362,7 +358,7 @@ ITCM_FN int main(void) {
     printf((fail) ? "TEST FAIL.!\n" : "TEST PASS.\n");
     printf("Average ref cycles = %lu\n", sum_ref / TEST_RUN);
     printf("Average MVE cycles = %lu\n", sum_mve / TEST_RUN);
-
+    printf("Average M4 cycles = %lu\n", sum_m4 / TEST_RUN);
     return( 0 );
 }
 #endif

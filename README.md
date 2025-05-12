@@ -16,9 +16,9 @@ printf "Sleep 2000\nLoadFile bench_ra8m1.elf\ngo\nSleep 3600000" | JLinkExe -if 
 ### Benchmark
 | Function   | Avg cycles in  MVE | Avg cycles in C | Avg cycles in M4 |
 |------------|--------------------|-----------------|------------------|
-| UOV-Is: gf16mat_prod 2048_96  | 1287021 | 2688904 |
+| UOV-Is: gf16mat_prod 2048_96  | 1287021 | 2688904 | 把 rept 改成 loop
 | UOV-Is: gf16mat_prod 48_64    | 21075   |   50027 |
 | UOV-Is: gf16mat_prod 32_X     | 3848    |    8710 |
-| UOV-Ip: gf256mat_prod 1936_68 | 1188256 | 3087399 |
-| UOV-Ip: gf256mat_prod 68_44   | 31964   |  127261 |
+| UOV-Ip: gf256mat_prod 1936_68 | 1188551 | 3088048 |          1397865 |
+| UOV-Ip: gf256mat_prod 68_44   | 31962   |  127600 |            33342 |
 | UOV-Ip: gf256mat_prod 44_X    | 10511   |   31539 |            11261 |
