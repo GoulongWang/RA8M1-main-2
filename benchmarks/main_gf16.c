@@ -19,8 +19,8 @@
 #define gf256v_add_mve _gf256v_add_u32_mve
 #define gf16v_madd _gf16v_madd_u32
 
-#define N_A_VEC_BYTE 2048 //32//48 //2048
-#define N_A_WIDTH    96       //64 //96    
+#define N_A_VEC_BYTE 48     //48 //2048
+#define N_A_WIDTH    64     //64 //96    
 #define TEST_RUN     100
 
 #define bench_cycles(CALL, OUT_VAR)                                                    \
@@ -258,7 +258,7 @@ ITCM_FN int main(void) {
     uint32_t cycles;
     int fail = 0;
 
-    printf("=== UOV-Is: gf16mat_prod 2048_96 Unit Test ===\n");
+    /* printf("=== UOV-Is: gf16mat_prod 2048_96 Unit Test ===\n");
     uint8_t matA[ N_A_VEC_BYTE * N_A_WIDTH];
     uint8_t vec_b[N_A_VEC_BYTE ];
     uint8_t vec_c0[ N_A_VEC_BYTE ];
@@ -272,9 +272,9 @@ ITCM_FN int main(void) {
         memset(vec_c1, 0, sizeof(vec_c1));
         memset(vec_c2, 0, sizeof(vec_c2));
         
-        //bench_cycles(gf16mat_prod_ref( vec_c0, matA, N_A_VEC_BYTE, N_A_WIDTH, vec_b ), cycles);
+        bench_cycles(gf16mat_prod_ref( vec_c0, matA, N_A_VEC_BYTE, N_A_WIDTH, vec_b ), cycles);
         sum_ref += cycles;
-        //bench_cycles(gf16mat_prod_2048_96( vec_c1, matA, vec_b ), cycles);    
+        bench_cycles(gf16mat_prod_2048_96( vec_c1, matA, vec_b ), cycles);    
         sum_mve += cycles;
         bench_cycles(gf16mat_prod_m4f_2048_96_normal_normal((uint32_t *)vec_c2, (uint32_t *)matA, vec_b), cycles);
         sum_m4 += cycles;
@@ -283,62 +283,64 @@ ITCM_FN int main(void) {
             fail = 1;
             break;
         }
-    }
+    }*/
 
-/*     
+    /*  
     printf("=== UOV-Is: gf16mat_prod 48_64 Unit Test ===\n");
     uint8_t matA2[ N_A_VEC_BYTE * N_A_WIDTH];
     uint8_t vec_B[N_A_VEC_BYTE ];
     uint8_t vec_C0[ N_A_VEC_BYTE ];
     uint8_t vec_C1[ N_A_VEC_BYTE ];
-    
+    uint8_t vec_C2[ N_A_VEC_BYTE ];
+
     fail = 0;
     for (int l = 1; l <= TEST_RUN; l++) {
         randombytes(matA2, sizeof matA2);
         randombytes(vec_B, sizeof vec_B);
         memset(vec_C0, 0, sizeof(vec_C0));
         memset(vec_C1, 0, sizeof(vec_C1));
+        memset(vec_C2, 0, sizeof(vec_C2));
         
         bench_cycles(gf16mat_prod_ref( vec_C0, matA2, N_A_VEC_BYTE, N_A_WIDTH, vec_B ), cycles);
         sum_ref += cycles;
         bench_cycles(gf16mat_prod_48_64( vec_C1, matA2, vec_B ), cycles);    
         sum_mve += cycles;
+        bench_cycles(gf16mat_prod_m4f_48_64_normal_normal((uint32_t*) vec_C2, (uint32_t*) matA2, vec_B ), cycles);    
+        sum_m4 += cycles;
         
         if (memcmp(vec_C0, vec_C1, N_A_VEC_BYTE)) {
             fail = 1;
             break;
         }
-    }
- */    
+    } */
+     
 
-/*     printf("=== UOV-Is: gf16mat_prod 32_X Unit Test ===\n");
-    uint8_t N_A_WIDTH;
-    uint8_t out_ref[ N_A_VEC_BYTE ];
-    uint8_t out_mve[ N_A_VEC_BYTE ];
-    
-    uint32_t sum_ref = 0, sum_mve = 0;
-    uint32_t cycles;
+    printf("=== UOV-Is: gf16mat_prod 32_X Unit Test ===\n");
+    uint8_t N_A_WIDTH_test, N_A_VEC_BYTE_test = 32;
+    uint8_t out_ref[ N_A_VEC_BYTE_test ];
+    uint8_t out_mve[ N_A_VEC_BYTE_test ];
+    uint8_t out_m4[ N_A_VEC_BYTE_test ];
 
     fail = 0;
     for (int l = 1; l <= TEST_RUN; l++) {
-        randombytes((uint8_t*) &N_A_WIDTH, sizeof(uint8_t));
-        N_A_WIDTH = N_A_WIDTH % 32 + 1;
-        uint8_t matA3[ N_A_VEC_BYTE * N_A_WIDTH ];
-        uint8_t vec_B3[N_A_WIDTH / 2]; 
+        randombytes((uint8_t*) &N_A_WIDTH_test, sizeof(uint8_t));
+        N_A_WIDTH_test = N_A_WIDTH_test % 32 + 1;
+        uint8_t matA3[ N_A_VEC_BYTE_test * N_A_WIDTH_test ];
+        uint8_t vec_B3[N_A_WIDTH_test / 2]; 
         randombytes(matA3, sizeof matA3);
         randombytes(vec_B3, sizeof vec_B3);
         memset(out_ref, 0, sizeof(out_ref));
         memset(out_mve, 0, sizeof(out_mve));
+        memset(out_m4, 0, sizeof(out_m4));
         
-         // measure reference
-        bench_cycles(gf16mat_prod_ref(out_ref, matA3, N_A_VEC_BYTE, N_A_WIDTH, vec_B3), cycles);
+        bench_cycles(gf16mat_prod_ref(out_ref, matA3, N_A_VEC_BYTE_test, N_A_WIDTH_test, vec_B3), cycles);
         sum_ref += cycles;
-
-        // measure MVE
-        bench_cycles(gf16mat_prod_32_X(out_mve, matA3, vec_B3, N_A_WIDTH), cycles);
+        bench_cycles(gf16mat_prod_32_X(out_mve, matA3, vec_B3, N_A_WIDTH_test), cycles);
         sum_mve += cycles;
+        bench_cycles(gf16mat_prod_m4f_32_X_normal_normal(out_m4, matA3, vec_B3, N_A_WIDTH_test), cycles);
+        sum_m4 += cycles;
 
-        if (memcmp(out_ref, out_mve, N_A_VEC_BYTE)) {
+        if (memcmp(out_ref, out_mve, N_A_VEC_BYTE_test)) {
             printf("out_ref = ");
             for (int i = 0; i < 16; i++) {
                 printf("%02x ", out_ref[i]);
@@ -353,7 +355,7 @@ ITCM_FN int main(void) {
             fail = 1;
             break;
         }
-    }*/
+    }
 
     printf((fail) ? "TEST FAIL.!\n" : "TEST PASS.\n");
     printf("Average ref cycles = %lu\n", sum_ref / TEST_RUN);

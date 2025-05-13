@@ -3,10 +3,12 @@
 .macro gf256v_set_zero_mve c, n_A_vec_byte, tmp0, tmp_vec0
     vmov.u8 \tmp_vec0, #0
 
-    .set cnt, (\n_A_vec_byte >> 4)
-    .rept cnt
+    mov \tmp0, \n_A_vec_byte
+    lsr \tmp0, \tmp0, #4
+0:
     vstrb.u8 \tmp_vec0, [\c], #16
-    .endr
+    subs \tmp0, \tmp0, #1
+    bne 0b
 
     sub \c, \c, \n_A_vec_byte
 .endm
@@ -20,16 +22,18 @@
     lsrne \out, \out, #4    // == 1 => 取上半 nibble
 .endm
 
-.macro gf16v_madd_mve c, matA, bb, n_A_vec_byte, tmp_vec0, mask1_vec, mask2_vec, tmp_vec3, tmp_vec4, tmp_vec5, tmp_vec6, tmp_vec7
-    .set cnt, (\n_A_vec_byte >> 4)
-    .rept cnt
+.macro gf16v_madd_mve c, matA, bb, n_A_vec_byte, tmp0, tmp_vec0, mask1_vec, mask2_vec, tmp_vec3, tmp_vec4, tmp_vec5, tmp_vec6, tmp_vec7
+    mov \tmp0, \n_A_vec_byte
+    lsr \tmp0, \tmp0, #4
+1:
     vldrb.u8 \tmp_vec0, [\matA], #16
     vmov.u8 \tmp_vec7, #0 // 把 acc 歸零
     vec_scalar_mul \tmp_vec7, \tmp_vec0, \bb, \mask1_vec, \mask2_vec, \tmp_vec3, \tmp_vec4, \tmp_vec5, \tmp_vec6
     vldrb.u8 \tmp_vec0, [\c]
     veor.u8 \tmp_vec7, \tmp_vec7, \tmp_vec0
     vstrb.u8 \tmp_vec7, [\c], #16
-    .endr
+    subs \tmp0, \tmp0, #1
+    bne 1b
 .endm
 
 .macro gf16mat_prod n_A_vec_byte, n_A_width
@@ -45,12 +49,11 @@
     mov r3,  #0
 0:
     gf16v_get_ele_mve r4, r2, r3, r5
-    gf16v_madd_mve r0, r1, r4, \n_A_vec_byte, q0, q1, q2, q3, q4, q5, q6, q7
+    gf16v_madd_mve r0, r1, r4, \n_A_vec_byte, r5, q0, q1, q2, q3, q4, q5, q6, q7
 
     sub r0, r0, \n_A_vec_byte
     add r3, r3, #1
 
-    // low-overhead branches
     cmp r3, \n_A_width
     bne 0b
     
@@ -72,12 +75,11 @@
     mov r4,  #0
 0:
     gf16v_get_ele_mve r6, r2, r4, r5
-    gf16v_madd_mve r0, r1, r6, \n_A_vec_byte, q0, q1, q2, q3, q4, q5, q6, q7
+    gf16v_madd_mve r0, r1, r6, \n_A_vec_byte, r5, q0, q1, q2, q3, q4, q5, q6, q7
 
     sub r0, r0, \n_A_vec_byte
     add r4, r4, #1
 
-    // low-overhead branches
     cmp r4, r3
     bne 0b
     
