@@ -6,7 +6,6 @@
 #include "SSE300MPS3.h"
 #endif
 
-
 #include <inttypes.h>
 #include "utils.h"
 #include <stdatomic.h>
@@ -285,6 +284,7 @@ uint8_t tmp_Arow[MAX_V * MAX_O_BYTE];
     }
 }
 
+void gf16trimat_2trimat_madd_m4f_96_48_64_32(uint32_t *c, uint32_t *a, uint8_t *b);
 //void batch_2trimat_madd_gf16_mve( unsigned char *bC, const unsigned char *btriA,
   //  const unsigned char *B, unsigned Bheight, unsigned size_Bcolvec, unsigned Bwidth, unsigned size_batch );
 
@@ -400,17 +400,20 @@ ITCM_FN int main(void) {
     unsigned char B[(BHEIGHT * BWIDTH) / 2];
     unsigned char bC[SIZE_BATCH * (BHEIGHT * BWIDTH)];
     unsigned char bC_mve[SIZE_BATCH * (BHEIGHT * BWIDTH)];
+    uint32_t avg_ref = 0, avg_m4 = 0, avg_mve = 0;
 
-    for (int l = 1; l <= TEST_RUN; l++) {
+    for (int l = 0; l < TEST_RUN; l++) {
         memset(bC, 0, sizeof(bC));
         memset(bC_mve, 0, sizeof(bC_mve));
         randombytes((uint8_t*) btriA, sizeof(btriA));
         randombytes((uint8_t*) B, sizeof(B));
         
         bench_cycles(batch_2trimat_madd_gf16(bC, btriA, B, BHEIGHT, SIZE_BCOLVEC, BWIDTH, SIZE_BATCH), cycles);
-        sum_ref += cycles;
+        avg_ref += ((int64_t)(cycles - avg_ref)) / (l + 1);
         //batch_2trimat_madd_gf16_mve(bC_mve, btriA, B, BHEIGHT, SIZE_BCOLVEC, BWIDTH, SIZE_BATCH);
-        
+        bench_cycles(gf16trimat_2trimat_madd_m4f_96_48_64_32((uint32_t*) bC, (uint32_t*)  btriA, (uint8_t*)B), cycles);
+        avg_m4 += ((int64_t)(cycles - avg_m4)) / (l + 1);
+
         if (memcmp(bC, bC_mve, sizeof(bC))) {
             printf("bc_ref = [");
             for (int i = 0; i < sizeof(bC); i++) {
@@ -428,9 +431,9 @@ ITCM_FN int main(void) {
     }
 
     printf((fail) ? "TEST FAIL.!\n" : "TEST PASS.\n");
-    printf("Average ref cycles = %lu\n", sum_ref / TEST_RUN);
-    printf("Average MVE cycles = %lu\n", sum_mve / TEST_RUN);
-    printf("good!!! Average M4 cycles = %lu\n", sum_m4 / TEST_RUN);
+    printf("Average ref cycles = %lu\n", avg_ref);
+    printf("Average MVE cycles = %lu\n", avg_mve);
+    printf("Average M4 cycles = %lu\n", avg_m4);
     return( 0 );
 }
 #endif
