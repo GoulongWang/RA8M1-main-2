@@ -1,7 +1,7 @@
 .syntax unified
 
 #include "mat_vec_mul_gf256_mve.i"
-#include "gf256mat_prod.S"
+#include "gf256mat_prod.i"
 
 .global gf256mat_prod_1936_68
 .type gf256mat_prod_1936_68, %function
