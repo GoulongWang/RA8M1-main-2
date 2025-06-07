@@ -4,6 +4,8 @@
     vdup.u8 \mask_vec, \tmp0
     vand \out_vec, \in_vec, \mask_vec
 
+    //mov \tmp1, #7
+//0:
     .rept 7
     vshr.u8 \mask_vec, \in_vec, #7 // 直接把 in_vec 右移 7 bit 就可得到 MSB Vector 了，每個 element 中為 0/1
     vshl.u8 \in_vec,  \in_vec, #1  // in_vec <<= 1
@@ -20,4 +22,6 @@
     vand \mask_vec, \mask_vec, \in_vec
     veor.u8 \out_vec, \out_vec, \mask_vec
     .endr
+    //subs \tmp1, \tmp1, #1
+    //bne 0b
 .endm

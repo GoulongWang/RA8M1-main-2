@@ -6,7 +6,7 @@
 1. In the terminal, set the ARM GCC toolchain path by entering: 
 ```set ARM_GCC_TOOLCHAIN_PATH="/opt/homebrew/opt/arm-none-eabi-gcc/bin"```
 2. In VScode, select the [GCC 14.2.1 arm-none-eabi] Kit from the status bar, then click `Build` to generate `bench_ra8m1.elf`
-![status bar](/status_bar.png) (**If you modify the code, click `Build` again**)
+ (**If you modify the code, click `Build` again**)
 3. In the terminal, execute the following commands:
 ```
 cd build/Debug
@@ -22,7 +22,7 @@ printf "Sleep 2000\nLoadFile bench_ra8m1.elf\ngo\nSleep 3600000" | JLinkExe -if 
 | UOV-Is: gf16mat_prod 2048_96  | 1287021 | 2688904 |          1018395 |
 | UOV-Is: gf16mat_prod 48_64    | 21075   |   48617 |            16098 |
 | UOV-Is: gf16mat_prod 32_X     | 3955    |    9033 |             2925 |
-| UOV-Is: gf16trimat_2trimat_madd 96_48_64_32| |800293407|114615221|
+| UOV-Is: gf16trimat_2trimat_madd 96_48_64_32| 103863762 |790925336|114613576|
 | UOV-Ip: gf256mat_prod 1936_68 | 1188551 | 3088048 |          1397865 |
 | UOV-Ip: gf256mat_prod 68_44   | 31962   |  127600 |            33342 |
 | UOV-Ip: gf256mat_prod 44_X    | 10511   |   31539 |            11261 |

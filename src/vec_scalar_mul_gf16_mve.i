@@ -22,18 +22,16 @@
 .endm
 
 // 把 output 變成累加器 acc
-.macro vec_scalar_mul acc, input_vec, scalar, mask_vec, mask2_vec, tmp_vec0, tmp_vec1, tmp_vec2, tmp_vec3
-	vdup.u8 \tmp_vec1, \scalar // scalar mask
-
+.macro vec_scalar_mul acc, input_vec, scalar_mask, mask_vec, mask2_vec, tmp_vec0, tmp_vec1, tmp_vec2
 	// (1) Compute the result for the least significant 4 bits of each byte
 	vand \tmp_vec0, \input_vec, \mask_vec 
-	sub_vec_scalar_mul \tmp_vec3, \tmp_vec0, \tmp_vec1, \mask_vec, \mask2_vec, \tmp_vec2
-	veor.u8 \acc, \acc, \tmp_vec3
+	sub_vec_scalar_mul \tmp_vec2, \tmp_vec0, \scalar_mask, \mask_vec, \mask2_vec, \tmp_vec1
+	veor.u8 \acc, \acc, \tmp_vec2
 
 	// (2) Compute the result for the most significant 4 bits of each byte
 	vshr.u8 \tmp_vec0, \input_vec, #4 
-	sub_vec_scalar_mul \tmp_vec3, \tmp_vec0, \tmp_vec1, \mask_vec, \mask2_vec, \tmp_vec2
+	sub_vec_scalar_mul \tmp_vec2, \tmp_vec0, \scalar_mask, \mask_vec, \mask2_vec, \tmp_vec1
 
-	// Combine the result of (1) and (2), acc = acc "OR" (tmp_vec3 << 4) 這裡 or 的效果等於 xor
-	vsli.u8 \acc, \tmp_vec3, #4  
+	// Combine the result of (1) and (2), acc = acc "OR" (tmp_vec2 << 4) 這裡 or 的效果等於 xor
+	vsli.u8 \acc, \tmp_vec2, #4  
 .endm
