@@ -400,8 +400,7 @@ ITCM_FN int main(void) {
     unsigned char B[(BHEIGHT * BWIDTH) / 2];
     unsigned char bC[SIZE_BATCH * (BHEIGHT * BWIDTH)];
     unsigned char bC_mve[SIZE_BATCH * (BHEIGHT * BWIDTH)];
-    uint32_t avg_ref = 0, avg_m4 = 0, avg_mve = 0;
-
+    
     for (int l = 0; l < TEST_RUN; l++) {
         memset(bC, 0, sizeof(bC));
         memset(bC_mve, 0, sizeof(bC_mve));
@@ -409,13 +408,14 @@ ITCM_FN int main(void) {
         randombytes((uint8_t*) B, sizeof(B));
         
         bench_cycles(gf16trimat_2trimat_madd_m4f_96_48_64_32((uint32_t*) bC, (uint32_t*)  btriA, (uint8_t*)B), cycles);
-        avg_m4 += ((int64_t)cycles - (int64_t)avg_m4) / (l + 1);
-
+        sum_m4 += cycles;
+        
         memset(bC, 0, sizeof(bC));
         bench_cycles(batch_2trimat_madd_gf16_mve(bC_mve, btriA, B, BHEIGHT, SIZE_BCOLVEC, BWIDTH, SIZE_BATCH), cycles);
-        avg_mve += ((int64_t)cycles - (int64_t)avg_mve) / (l + 1);
+        sum_mve += cycles;
         bench_cycles(batch_2trimat_madd_gf16(bC, btriA, B, BHEIGHT, SIZE_BCOLVEC, BWIDTH, SIZE_BATCH), cycles);
-        avg_ref += ((int64_t)cycles - (int64_t)avg_ref) / (l + 1);
+        sum_ref += cycles;
+        printf("\n");
         
         if (memcmp(bC, bC_mve, sizeof(bC))) {
             printf("bc_ref = [");
@@ -434,9 +434,9 @@ ITCM_FN int main(void) {
     }
 
     printf((fail) ? "TEST FAIL.!\n" : "TEST PASS.\n");
-    printf("Average ref cycles = %lu\n", avg_ref);
-    printf("Average MVE cycles = %lu\n", avg_mve);
-    printf("Average M4  cycles = %lu\n", avg_m4);
+    printf("Average ref cycles = %lu\n", sum_ref / TEST_RUN);
+    printf("Average MVE cycles = %lu\n", sum_mve / TEST_RUN);
+    printf("Average M4  cycles = %lu\n\n\n", sum_m4 / TEST_RUN);
     return( 0 );
 }
 #endif
