@@ -288,12 +288,27 @@ void gf16trimat_2trimat_madd_m4f_96_48_64_32(uint32_t *c, uint32_t *a, uint8_t *
 void batch_2trimat_madd_gf16_mve( unsigned char *bC, const unsigned char *btriA,
     const unsigned char *B, unsigned Bheight, unsigned size_Bcolvec, unsigned Bwidth, unsigned size_batch );
 
+static void print_u64(uint64_t v)
+{
+    /* 1 000 000 000 < 2^32，可安全存進 uint32_t */
+    const uint32_t base = 1000000000U;
+
+    if (v >= base) {
+        uint32_t hi = (uint32_t)(v / base);
+        uint32_t lo = (uint32_t)(v % base);
+        /* lo 需補零到 9 位，才能跟 hi 無縫接起來 */
+        printf("%lu%09lu\n", hi, lo);
+    } else {
+        printf("%lu\n", (uint32_t)v);
+    }
+}
+
 ITCM_FN int main(void) {
     Utils_Init();
     PMU_Init();
 
-    uint32_t sum_ref = 0, sum_mve = 0, sum_m4 = 0;
-    uint32_t cycles;
+    uint64_t sum_ref = 0, sum_mve = 0, sum_m4 = 0;
+    uint64_t cycles;
     int fail = 0;
 
     /* printf("=== UOV-Is: gf16mat_prod 2048_96 Unit Test ===\n");
@@ -434,9 +449,12 @@ ITCM_FN int main(void) {
     }
 
     printf((fail) ? "TEST FAIL.!\n" : "TEST PASS.\n");
-    printf("Average ref cycles = %lu\n", sum_ref / TEST_RUN);
-    printf("Average MVE cycles = %lu\n", sum_mve / TEST_RUN);
-    printf("Average M4  cycles = %lu\n\n\n", sum_m4 / TEST_RUN);
+    printf("Average ref cycles = ");
+    print_u64(sum_ref / TEST_RUN);
+    printf("Average MVE cycles = ");
+    print_u64(sum_mve / TEST_RUN);
+    printf("Average M4  cycles = ");
+    print_u64(sum_m4 / TEST_RUN);
     return( 0 );
 }
 #endif
