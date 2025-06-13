@@ -316,15 +316,18 @@ ITCM_FN int main (void)
             break;
         }
     } */
-
-    /*
+/*
+    
     printf("====== UOV-Ip: gf256mat_prod 44_X unit test ======\n");
+    uint32_t sum_ref = 0, sum_mve = 0, sum_m4 = 0;
+    uint32_t cycles;
     uint8_t N_A_VEC_BYTE_test = 44, N_A_WIDTH_test;
     uint8_t vec_b[ N_A_VEC_BYTE_test ];
     uint8_t vec_c0[ N_A_VEC_BYTE_test ];
     uint8_t vec_c1[ N_A_VEC_BYTE_test ];
     uint8_t vec_c2[ N_A_VEC_BYTE_test ];
     
+    int fail = 0;
     for (int l = 1; l <= TEST_RUN; l++) {
         randombytes(vec_b, sizeof vec_b);
         randombytes(&N_A_WIDTH_test, sizeof(N_A_WIDTH_test));
@@ -361,9 +364,13 @@ ITCM_FN int main (void)
             fail = 1;
             break;
         }
-    }*/
+    }
 
-    
+    printf((fail) ? "TEST FAIL.!\n" : "TEST PASS.\n");
+    printf("Average ref cycles = %lu\n", sum_ref / TEST_RUN);
+    printf("Average MVE cycles = %lu\n", sum_mve / TEST_RUN);
+    printf("Average M4 cycles = %lu\n", sum_m4 / TEST_RUN);
+    */
     return( 0 );
 }
 #endif
