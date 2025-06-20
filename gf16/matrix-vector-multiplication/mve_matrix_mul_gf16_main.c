@@ -3,14 +3,120 @@
 #include <stdint.h>
 #include <string.h>
 #include "../../randombytes.h"
+#define TEST_RUN 100
 
 #define gf256v_add _gf256v_add_u32
-#define gf256v_add_mve _gf256v_add_u32_mve
 #define gf16v_madd _gf16v_madd_u32
 
-#define N_A_VEC_BYTE  2048 //48 // 2048
-#define N_A_WIDTH     96  //64 // 96    
-#define TEST_RUN      100
+void gf16mat_prod_ref(uint8_t *c, const uint8_t *matA, unsigned n_A_vec_byte, unsigned n_A_width, const uint8_t *b);
+void gf16mat_prod_2048_96(uint8_t *c, const uint8_t *matA, const uint8_t *b);
+void gf16mat_prod_48_64(uint8_t *c, const uint8_t *matA, const uint8_t *b);
+void gf16mat_prod_32_X(uint8_t *c, const uint8_t *matA, const uint8_t *b, size_t n_A_width);
+void unit_test_gf16mat_prod_2048_96();
+void unit_test_gf16mat_prod_48_64();
+void unit_test_gf16mat_prod_32_X();
+
+int main (void)
+{
+    unit_test_gf16mat_prod_2048_96();
+    unit_test_gf16mat_prod_48_64();
+    unit_test_gf16mat_prod_32_X();    
+    return( 0 );
+}
+
+void unit_test_gf16mat_prod_2048_96(){
+    printf("=== UOV-Is: gf16mat_prod 2048_96 Unit Test ===\n");
+    unsigned N_A_VEC_BYTE = 2048, N_A_WIDTH = 96;
+    uint8_t matA[ N_A_VEC_BYTE * N_A_WIDTH];
+    uint8_t vec_b[N_A_VEC_BYTE ];
+    uint8_t vec_c0[ N_A_VEC_BYTE ];
+    uint8_t vec_c1[ N_A_VEC_BYTE ];
+
+    int fail = 0;
+    for (int l = 1; l <= TEST_RUN; l++) {
+        randombytes(matA, sizeof matA);
+        randombytes(vec_b, sizeof vec_b);
+        memset(vec_c0, 0, sizeof(vec_c0));
+        memset(vec_c1, 0, sizeof(vec_c1));
+        
+        gf16mat_prod_ref( vec_c0, matA, N_A_VEC_BYTE, N_A_WIDTH, vec_b );
+        gf16mat_prod_2048_96( vec_c1, matA, vec_b );    
+        
+        if (memcmp(vec_c0, vec_c1, N_A_VEC_BYTE)) {
+            fail = 1;
+            break;
+        }
+    }
+
+    printf((fail) ? "TEST FAIL.!\n" : "TEST PASS.\n"); 
+}
+
+void unit_test_gf16mat_prod_48_64(){
+    printf("=== UOV-Is: gf16mat_prod 48_64 Unit Test ===\n");
+    unsigned N_A_VEC_BYTE = 48, N_A_WIDTH = 64;
+    uint8_t matA2[ N_A_VEC_BYTE * N_A_WIDTH];
+    uint8_t vec_B[N_A_VEC_BYTE ];
+    uint8_t vec_C0[ N_A_VEC_BYTE ];
+    uint8_t vec_C1[ N_A_VEC_BYTE ];
+    
+    int fail = 0;
+    for (int l = 1; l <= TEST_RUN; l++) {
+        randombytes(matA2, sizeof matA2);
+        randombytes(vec_B, sizeof vec_B);
+        memset(vec_C0, 0, sizeof(vec_C0));
+        memset(vec_C1, 0, sizeof(vec_C1));
+        
+        gf16mat_prod_ref( vec_C0, matA2, N_A_VEC_BYTE, N_A_WIDTH, vec_B );
+        gf16mat_prod_48_64( vec_C1, matA2, vec_B );    
+        
+        if (memcmp(vec_C0, vec_C1, N_A_VEC_BYTE)) {
+            fail = 1;
+            break;
+        }
+    }
+
+    printf((fail) ? "TEST FAIL.!\n" : "TEST PASS.\n");
+}
+
+void unit_test_gf16mat_prod_32_X(){
+    printf("=== UOV-Is: gf16mat_prod 32_X Unit Test ===\n");
+    uint8_t N_A_VEC_BYTE = 32, N_A_WIDTH; 
+    uint8_t out_ref[ N_A_VEC_BYTE ];
+    uint8_t out_mve[ N_A_VEC_BYTE ];
+
+    int fail = 0;
+    for (int l = 1; l <= TEST_RUN; l++) {
+        randombytes((uint8_t*) &N_A_WIDTH, sizeof(uint8_t));
+        N_A_WIDTH = N_A_WIDTH % 32 + 1;
+        uint8_t matA3[ N_A_VEC_BYTE * N_A_WIDTH ];
+        uint8_t vec_B3[N_A_WIDTH / 2]; 
+        randombytes(matA3, sizeof matA3);
+        randombytes(vec_B3, sizeof vec_B3);
+        memset(out_ref, 0, sizeof(out_ref));
+        memset(out_mve, 0, sizeof(out_mve));
+        
+        gf16mat_prod_ref( out_ref, matA3, N_A_VEC_BYTE, N_A_WIDTH, vec_B3);
+        gf16mat_prod_32_X(out_mve, matA3, vec_B3, N_A_WIDTH);
+        
+        if (memcmp(out_ref, out_mve, N_A_VEC_BYTE)) {
+            printf("out_ref = ");
+            for (int i = 0; i < 16; i++) {
+                printf("%02x ", out_ref[i]);
+            }
+            printf("\n");
+
+            printf("out_mve = ");
+            for (int i = 0; i < 16; i++) {
+                printf("%02x ", out_mve[i]);
+            }
+            printf("\n");
+            fail = 1;
+            break;
+        }
+    } 
+
+    printf((fail) ? "TEST FAIL.!\n" : "TEST PASS.\n");
+}
 
 static inline uint32_t gf16v_mul_u32(uint32_t a, uint8_t b) {
     uint32_t a_msb;
@@ -67,7 +173,6 @@ static inline void _gf16v_madd_u32_aligned(uint8_t *accu_c, const uint8_t *a, ui
 }
 
 static inline void _gf16v_madd_u32_mve(uint8_t *accu_c, const uint8_t *a, uint8_t gf16_b, unsigned _num_byte) {
-
     uintptr_t ap = (uintptr_t)(const void *)a;
     uintptr_t cp = (uintptr_t)(const void *)accu_c;
     
@@ -113,7 +218,6 @@ static inline void _gf16v_madd_u32_mve(uint8_t *accu_c, const uint8_t *a, uint8_
 }
 
 static inline void _gf16v_madd_u32(uint8_t *accu_c, const uint8_t *a, uint8_t gf16_b, unsigned _num_byte) {
-
     uintptr_t ap = (uintptr_t)(const void *)a;
     uintptr_t cp = (uintptr_t)(const void *)accu_c;
     
@@ -173,7 +277,6 @@ static inline void _gf256v_add_u32_aligned(uint8_t *accu_b, const uint8_t *a, un
     }
 }
 
-void _gf256v_add_u32_mve(uint8_t *accu_b, const uint8_t *a, unsigned _num_byte);
 static inline void _gf256v_add_u32(uint8_t *accu_b, const uint8_t *a, unsigned _num_byte) {
     uintptr_t bp = (uintptr_t)(const void *)accu_b;
     uintptr_t ap = (uintptr_t)(const void *)a;
@@ -213,95 +316,4 @@ void gf16mat_prod_ref(uint8_t *c, const uint8_t *matA, unsigned n_A_vec_byte, un
         gf16v_madd(c, matA, bb, n_A_vec_byte);
         matA += n_A_vec_byte;
     }
-}
-
-void gf16mat_prod_2048_96(uint8_t *c, const uint8_t *matA, const uint8_t *b);
-void gf16mat_prod_48_64(uint8_t *c, const uint8_t *matA, const uint8_t *b);
-void gf16mat_prod_32_X(uint8_t *c, const uint8_t *matA, const uint8_t *b, size_t n_A_width);
-
-int main (void)
-{
-    int fail = 0;
-    
-    printf("=== UOV-Is: gf16mat_prod 2048_96 Unit Test ===\n");
-    uint8_t matA[ N_A_VEC_BYTE * N_A_WIDTH];
-    uint8_t vec_b[N_A_VEC_BYTE ];
-    uint8_t vec_c0[ N_A_VEC_BYTE ];
-    uint8_t vec_c1[ N_A_VEC_BYTE ];
-    
-    for (int l = 1; l <= TEST_RUN; l++) {
-        randombytes(matA, sizeof matA);
-        randombytes(vec_b, sizeof vec_b);
-        memset(vec_c0, 0, sizeof(vec_c0));
-        memset(vec_c1, 0, sizeof(vec_c1));
-        
-        gf16mat_prod_ref( vec_c0, matA, N_A_VEC_BYTE, N_A_WIDTH, vec_b );
-        gf16mat_prod_2048_96( vec_c1, matA, vec_b );    
-        
-        if (memcmp(vec_c0, vec_c1, N_A_VEC_BYTE)) {
-            fail = 1;
-            break;
-        }
-    }
-    
-    /* printf("=== UOV-Is: gf16mat_prod 48_64 Unit Test ===\n");
-    uint8_t matA2[ N_A_VEC_BYTE * N_A_WIDTH];
-    uint8_t vec_B[N_A_VEC_BYTE ];
-    uint8_t vec_C0[ N_A_VEC_BYTE ];
-    uint8_t vec_C1[ N_A_VEC_BYTE ];
-    
-    fail = 0;
-    for (int l = 1; l <= TEST_RUN; l++) {
-        randombytes(matA2, sizeof matA2);
-        randombytes(vec_B, sizeof vec_B);
-        memset(vec_C0, 0, sizeof(vec_C0));
-        memset(vec_C1, 0, sizeof(vec_C1));
-        
-        gf16mat_prod_ref( vec_C0, matA2, N_A_VEC_BYTE, N_A_WIDTH, vec_B );
-        gf16mat_prod_48_64( vec_C1, matA2, vec_B );    
-        
-        if (memcmp(vec_C0, vec_C1, N_A_VEC_BYTE)) {
-            fail = 1;
-            break;
-        }
-    } */ 
-  
-    /* printf("=== UOV-Is: gf16mat_prod 32_X Unit Test ===\n");
-    uint8_t N_A_VEC_BYTE_test = 32, N_A_WIDTH_test; 
-    uint8_t out_ref[ N_A_VEC_BYTE_test ];
-    uint8_t out_mve[ N_A_VEC_BYTE_test ];
-
-    fail = 0;
-    for (int l = 1; l <= TEST_RUN; l++) {
-        randombytes((uint8_t*) &N_A_WIDTH_test, sizeof(uint8_t));
-        N_A_WIDTH_test = N_A_WIDTH_test % 32 + 1;
-        uint8_t matA3[ N_A_VEC_BYTE_test * N_A_WIDTH_test ];
-        uint8_t vec_B3[N_A_WIDTH_test / 2]; 
-        randombytes(matA3, sizeof matA3);
-        randombytes(vec_B3, sizeof vec_B3);
-        memset(out_ref, 0, sizeof(out_ref));
-        memset(out_mve, 0, sizeof(out_mve));
-        
-        gf16mat_prod_ref( out_ref, matA3, N_A_VEC_BYTE_test, N_A_WIDTH_test, vec_B3);
-        gf16mat_prod_32_X(out_mve, matA3, vec_B3, N_A_WIDTH_test);
-        
-        if (memcmp(out_ref, out_mve, N_A_VEC_BYTE_test)) {
-            printf("out_ref = ");
-            for (int i = 0; i < 16; i++) {
-                printf("%02x ", out_ref[i]);
-            }
-            printf("\n");
-
-            printf("out_mve = ");
-            for (int i = 0; i < 16; i++) {
-                printf("%02x ", out_mve[i]);
-            }
-            printf("\n");
-            fail = 1;
-            break;
-        }
-    } */
-
-    printf((fail) ? "TEST FAIL.!\n" : "TEST PASS.\n"); 
-    return( 0 );
 }
