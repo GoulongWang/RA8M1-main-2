@@ -28,3 +28,50 @@ printf "Sleep 2000\nLoadFile bench_ra8m1.elf\ngo\nSleep 3600000" | JLinkExe -if 
 | UOV-Ip: gf256mat_prod 68_44   | 31962   |  127600 |            33342 |
 | UOV-Ip: gf256mat_prod 44_X    | 10511   |   31539 |            11261 |
 | UOV-Ip: gf256trimat_2trimat_madd 68_68_44_44 | 96,998,349 | 187,126,589 | 104,198,645 |
+
+## Unit Test
+### GF16 Vector-scalar Multiplication
+```
+make run-vec-scalar-gf16.elf
+```
+
+### GF16 UOV Matrix-vector Multiplication
+- UOV-Is: gf16mat_prod 2048_96
+- UOV-Is: gf16mat_prod 48_64
+- UOV-Is: gf16mat_prod 32_X
+
+```
+make run-mat-vec-gf16.elf
+```
+
+### UOV-Is: gf16trimat_2trimat_madd 96_48_64_32
+```
+make run-trimat-2trimat-madd-gf16.elf
+```
+
+### UOV publicmap
+```
+make run-uov-publicmap.elf
+```
+
+### GF16 MAYO Matrix Multiplication (要修參數，太久沒更新)
+```
+make run-mayo-mat.elf
+```
+
+### GF256 Vector-scalar Multiplication
+```
+make run-vec-scalar-gf256.elf
+```
+
+### GF256 Matrix-vector Multiplication (還要修，太久沒更新)
+- UOV-Ip: gf256mat_prod 1936_68
+- UOV-Ip: gf256mat_prod 68_44
+- UOV-Ip: gf256mat_prod 44_X
+```
+make run-mat-vec-gf256.elf
+```
+### UOV-Ip: gf256trimat_2trimat_madd 68_68_44_44
+```
+make run-trimat-2trimat-madd-gf256.elf
+```
