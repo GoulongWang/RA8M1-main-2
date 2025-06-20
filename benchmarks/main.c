@@ -528,7 +528,7 @@ ITCM_FN int main (void)
     PMU_Init();
     //benchmark_gf256mat_prod_1936_68();// the code size of gf256mat_prod_m4f_1936_68_normal_normal is about 20000
     //benchmark_gf256mat_prod_68_44();  // the code size of gf256mat_prod_m4f_68_44_normal_normal is about 20000 
-    benchmark_gf256mat_prod_44_X();   // the code size of gf256mat_prod_m4f_44_X_normal_normal is about 20000
+    benchmark_gf256mat_prod_44_X();   //  
     benchmark_gf256trimat_2trimat_madd_68_68_44_44();
     benchmark_ov_publicmap();
     return( 0 );

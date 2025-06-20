@@ -98,6 +98,11 @@
     subs r4, r4, #1
  	bne 6b
 
+    // test
+    .rept 3000
+    nop
+    .endr
+
 	pop {r4-r8}
     bx lr
 .endm
