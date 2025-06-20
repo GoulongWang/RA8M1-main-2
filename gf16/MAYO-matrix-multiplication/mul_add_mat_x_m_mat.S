@@ -2,29 +2,6 @@
 
 #include "mul_add_mat_x_m_mat.i"
 
-.global mul_table_mve
-.type mul_table_mve, %function
-mul_table_mve:
-    push {r8-r11}
-    mul_table_mve r0, r12
-    pop {r8-r11}
-    bx lr
-
-.global m_vec_mul_add_mve
-.type m_vec_mul_add_mve, %function
-m_vec_mul_add_mve:
-    push {r4-r10}
-
-	mov r4, #0x0f
-	vdup.u8 q0, r4
-
-	mov r4, #3
-	vdup.u8 q1, r4
-
-    m_vec_mul_add_mve r1, r2, r3, r4, r5, r6, q0, q1, q2, q3, q4, q5, q6, q7
-    pop {r4-r10}
-    bx lr
-
 .global mul_add_mat_x_m_mat_mve
 .type mul_add_mat_x_m_mat_mve, %function
 mul_add_mat_x_m_mat_mve:
@@ -68,7 +45,7 @@ mul_add_mat_x_m_mat_mve:
             add r12, r12, r3
 
             m_vec_mul_add_mve r10, r11, r12, r14, r4, r0, q0, q1, q2, q3, q4, q5, q6, q7
-            
+        
             add r9, r9, #1
             cmp r9, #8
             bne 2b

@@ -54,7 +54,7 @@ make run-trimat-2trimat-madd-gf16.elf
 make run-uov-publicmap.elf
 ```
 
-### GF16 MAYO Matrix Multiplication (要修參數，太久沒更新)
+### GF16 MAYO Matrix Multiplication
 ```
 make run-mayo-mat.elf
 ```
@@ -64,7 +64,7 @@ make run-mayo-mat.elf
 make run-vec-scalar-gf256.elf
 ```
 
-### GF256 Matrix-vector Multiplication (還要修，太久沒更新)
+### GF256 Matrix-vector Multiplication
 - UOV-Ip: gf256mat_prod 1936_68
 - UOV-Ip: gf256mat_prod 68_44
 - UOV-Ip: gf256mat_prod 44_X

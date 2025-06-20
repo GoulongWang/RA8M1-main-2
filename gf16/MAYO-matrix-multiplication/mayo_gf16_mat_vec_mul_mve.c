@@ -10,6 +10,51 @@
 #define MAT_COLS        78
 #define BS_MAT_COLS     8
 
+static void pad_matrix(uint64_t *out, uint64_t *in,  const int mat_cols, const int bs_mat_cols);
+static int mem_compare(uint64_t *acc_ref, uint64_t *acc);
+void mul_add_mat_x_m_mat_mve(const int m_vec_limbs, const unsigned char *mat, const uint64_t *bs_mat, uint64_t *acc, 
+                            const int mat_rows, const int mat_cols, const int bs_mat_cols);
+static inline void mul_add_mat_x_m_mat_ref(const int m_vec_limbs, const unsigned char *mat, const uint64_t *bs_mat, uint64_t *acc,
+                            const int mat_rows, const int mat_cols, const int bs_mat_cols);
+
+int main (void)
+{
+    printf("=== GF16 MAYO Matrix Multiplication ===\n");
+    unsigned char mat[MAT_ROWS * MAT_COLS];
+    uint8_t bs_mat_bytes[MAT_COLS * BS_MAT_COLS * (M_VEC_LIMBS * sizeof(uint64_t))];
+    uint8_t bs_mat_bytes_padded[MAT_COLS * BS_MAT_COLS * ((M_VEC_LIMBS + 1) * sizeof(uint64_t))]; // (M_VEC_LIMBS + 1) 多加一個 limb 來處理超過的部分
+
+    uint64_t acc_ref[MAT_ROWS * BS_MAT_COLS * M_VEC_LIMBS];
+    uint64_t acc[MAT_ROWS * BS_MAT_COLS * (M_VEC_LIMBS + 1)] __attribute__((aligned(8))); // 輸出的部分也需要調整成多一個 limb，但這個 limb 其實沒有用途
+
+    int fail = 0;
+    for (int l = 1; l <= TEST_RUN; l++) {
+        random_4bits_in_a_byte(mat, sizeof mat);                    // (0000 xxxx) in a byte
+        random_4bits_in_a_byte(bs_mat_bytes, sizeof(bs_mat_bytes)); // 1 bytes for 1 gf16 element
+
+        memset(bs_mat_bytes_padded, 0, sizeof bs_mat_bytes_padded);
+        // 把 bs_mat_bytes 矩陣擴展成符合 6 個 limbs 格式的矩陣
+        pad_matrix((uint64_t *)bs_mat_bytes_padded, (uint64_t *)bs_mat_bytes, MAT_COLS, BS_MAT_COLS);
+
+        uint64_t* bs_mat = (uint64_t*) bs_mat_bytes;
+
+        memset(acc_ref, 0, sizeof acc_ref);
+        memset(acc, 0, sizeof acc);
+
+        mul_add_mat_x_m_mat_ref(M_VEC_LIMBS, mat, bs_mat, acc_ref, MAT_ROWS, MAT_COLS, BS_MAT_COLS);
+        // 輸入的部分就要改成擴充後的 bs_mat_bytes_padded
+        mul_add_mat_x_m_mat_mve(M_VEC_LIMBS + 1, mat, (uint64_t*) bs_mat_bytes_padded, acc, MAT_ROWS, MAT_COLS, BS_MAT_COLS);
+
+        if (mem_compare(acc_ref, acc)) {
+            break;
+        }
+    }
+
+    printf((fail) ? "TEST FAIL!\n" : "TEST PASS.\n");
+
+    return( 0 );
+}
+
 // This implements arithmetic for nibble-packed vectors of m field elements in Z_2[x]/(x^4+x+1)
 // gf16 := gf2[x]/(x^4+x+1)
 static inline uint32_t mul_table(uint8_t b){
@@ -18,11 +63,6 @@ static inline uint32_t mul_table(uint8_t b){
     uint32_t high_half = x & high_nibble_mask;
     return (x ^ (high_half >> 4) ^ (high_half >> 3)); // reduction
 }
-
-uint32_t mul_table_mve(uint8_t b);
-void m_vec_mul_add_mve (int m_vec_limbs, const uint64_t *in, unsigned char a, uint64_t *acc);
-void mul_add_mat_x_m_mat_mve(const int m_vec_limbs, const unsigned char *mat, const uint64_t *bs_mat, uint64_t *acc, 
-                            const int mat_rows, const int mat_cols, const int bs_mat_cols);
 
 static inline void m_vec_mul_add (int m_vec_limbs, const uint64_t *in, unsigned char a, uint64_t *acc) {
     (void) m_vec_limbs;
@@ -87,42 +127,4 @@ static int mem_compare(uint64_t *acc_ref, uint64_t *acc){
     }
 
     return 0;
-}
-
-int main (void)
-{
-    unsigned char mat[MAT_ROWS * MAT_COLS];
-    uint8_t bs_mat_bytes[MAT_COLS * BS_MAT_COLS * (M_VEC_LIMBS * sizeof(uint64_t))];
-    uint8_t bs_mat_bytes_padded[MAT_COLS * BS_MAT_COLS * ((M_VEC_LIMBS + 1) * sizeof(uint64_t))]; // (M_VEC_LIMBS + 1) 多加一個 limb 來處理超過的部分
-
-    uint64_t acc_ref[MAT_ROWS * BS_MAT_COLS * M_VEC_LIMBS];
-    uint64_t acc[MAT_ROWS * BS_MAT_COLS * (M_VEC_LIMBS + 1)] __attribute__((aligned(8))); // 輸出的部分也需要調整成多一個 limb，但這個 limb 其實沒有用途
-
-    int fail = 0;
-    for (int l = 1; l <= TEST_RUN; l++) {
-        random_4bits_in_a_byte(mat, sizeof mat);                    // (0000 xxxx) in a byte
-        random_4bits_in_a_byte(bs_mat_bytes, sizeof(bs_mat_bytes)); // 1 bytes for 1 gf16 element
-
-        memset(bs_mat_bytes_padded, 0, sizeof bs_mat_bytes_padded);
-        // 把 bs_mat_bytes 矩陣擴展成符合 6 個 limbs 格式的矩陣
-        pad_matrix((uint64_t *)bs_mat_bytes_padded, (uint64_t *)bs_mat_bytes, MAT_COLS, BS_MAT_COLS);
-
-        uint64_t* bs_mat = (uint64_t*) bs_mat_bytes;
-
-        memset(acc_ref, 0, sizeof acc_ref);
-        memset(acc, 0, sizeof acc);
-
-        mul_add_mat_x_m_mat_ref(M_VEC_LIMBS, mat, bs_mat, acc_ref, MAT_ROWS, MAT_COLS, BS_MAT_COLS);
-        // 輸入的部分就要改成擴充後的 bs_mat_bytes_padded
-        mul_add_mat_x_m_mat_mve(M_VEC_LIMBS + 1, mat, (uint64_t*) bs_mat_bytes_padded, acc, MAT_ROWS, MAT_COLS, BS_MAT_COLS);
-
-        fail = mem_compare(acc_ref, acc);
-        if (fail) {
-            break;
-        }
-    }
-
-    printf((fail) ? "TEST FAIL!\n" : "TEST PASS.\n");
-
-    return( 0 );
 }
