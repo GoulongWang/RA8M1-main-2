@@ -7,16 +7,53 @@
 #define TEST_RUN 100
 #define N 64
 #define M 64
-
 #define _MAX_N 256
 #define TMPVEC_LEN 32
 #define _PUB_N 64
-
 #define _PUB_M 64
 #define _V 32
 #define _PUB_M_BYTE (_PUB_M / 2)
-
 #define _GFSIZE 16
+
+void ov_publicmap( unsigned char *y, const unsigned char *trimat, const unsigned char *x );
+void ov_publicmap_mve( unsigned char *y, const unsigned char *trimat, const unsigned char *x );
+
+int main(){
+    printf("=== GF16 ov_publicmap Unit Test ===\n");
+    uint8_t P[M * N * (N + 1) / 4];
+    uint8_t sig[N / 2];
+    uint8_t acc[M / 2], acc_mve[M / 2];
+
+    int fail = 0;
+    for (int i = 0; i < TEST_RUN; i++) {
+        memset(acc, 0, sizeof(acc));
+        memset(acc_mve, 0, sizeof(acc_mve));
+        randombytes(P, sizeof(P));
+        randombytes(sig, sizeof sig);
+
+        ov_publicmap(acc, P, sig);
+        ov_publicmap_mve(acc_mve, P, sig);
+
+        if(memcmp(acc_mve, acc, sizeof(acc))){
+            printf("acc_ref = [");
+            for (int i = 0; i < sizeof(acc); i++) {
+                printf("%02x ", acc[i]);
+            }
+            printf("]\n");
+
+            printf("acc_mve = [");
+            for (int i = 0; i < sizeof(acc_mve); i++) {
+                printf("%02x ", acc_mve[i]);
+            }
+            printf("]\n"); 
+            fail = 1;
+            break;
+        }   
+    } 
+
+    printf((fail) ? "TEST FAIL.!\n" : "TEST PASS.\n");
+    return 0;
+}
 
 static inline uint8_t gfv_get_ele(const uint8_t *a, unsigned i) {
     uint8_t r = a[i >> 1];
@@ -108,43 +145,4 @@ void ov_publicmap( unsigned char *y, const unsigned char *trimat, const unsigned
             trimat += vec_len;
         }
     }
-}
-
-void ov_publicmap_mve( unsigned char *y, const unsigned char *trimat, const unsigned char *x );
-
-int main(){
-    printf("=== GF16 ov_publicmap Unit Test ===\n");
-    unsigned char P[M * N * (N + 1) / 4];
-    unsigned char sig[N / 2];
-    unsigned char acc[M / 2], acc_mve[M / 2];
-
-    int fail = 0;
-    for (int i = 0; i < TEST_RUN; i++) {
-        memset(acc, 0, sizeof(acc));
-        memset(acc_mve, 0, sizeof(acc_mve));
-        randombytes(P, sizeof(P));
-        randombytes(sig, sizeof sig);
-
-        ov_publicmap(acc, P, sig);
-        ov_publicmap_mve(acc_mve, P, sig);
-
-        if(memcmp(acc_mve, acc, sizeof(acc))){
-            printf("acc_ref = [");
-            for (int i = 0; i < sizeof(acc); i++) {
-                printf("%02x ", acc[i]);
-            }
-            printf("]\n");
-
-            printf("acc_mve = [");
-            for (int i = 0; i < sizeof(acc_mve); i++) {
-                printf("%02x ", acc_mve[i]);
-            }
-            printf("]\n"); 
-            fail = 1;
-            break;
-        }   
-    } 
-
-    printf((fail) ? "TEST FAIL.!\n" : "TEST PASS.\n");
-    return 0;
 }
