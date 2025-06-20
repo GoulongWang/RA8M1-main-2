@@ -14,6 +14,51 @@
 #define gf256v_madd       _gf256v_madd_u32
 #define gf256v_add        _gf256v_add_u32
 
+void batch_2trimat_madd_gf256( unsigned char *bC, const unsigned char *btriA,
+    const unsigned char *B, unsigned Bheight, unsigned size_Bcolvec, unsigned Bwidth, unsigned size_batch );
+void batch_2trimat_madd_gf256_mve( unsigned char *bC, const unsigned char *btriA,
+    const unsigned char *B, unsigned Bheight, unsigned size_Bcolvec, unsigned Bwidth, unsigned size_batch );
+
+int main(void)
+{
+    printf("=== UOV-Ip: gf256trimat_2trimat_madd 68_68_44_44 Unit Test ===\n");
+    uint8_t btriA[SIZE_BATCH * BHEIGHT * (BHEIGHT + 1) / 2]; 
+    uint8_t B[BHEIGHT * BWIDTH];
+    uint8_t bC[SIZE_BATCH * (BHEIGHT * BWIDTH)];
+    uint8_t bC_mve[SIZE_BATCH * (BHEIGHT * BWIDTH)];
+
+    int fail = 0;
+    for (int l = 1; l <= TEST_RUN; l++) {
+        memset(bC, 0, sizeof(bC));
+        memset(bC_mve, 0, sizeof(bC_mve));
+        randombytes((uint8_t*) btriA, sizeof(btriA));
+        randombytes((uint8_t*) B, sizeof(B));
+        
+        // batch_2trimat_madd( S, P1, sk_O, _V, _V_BYTE, _O, _O_BYTE )
+        batch_2trimat_madd_gf256(bC, btriA, B, BHEIGHT, SIZE_BCOLVEC, BWIDTH, SIZE_BATCH);
+        batch_2trimat_madd_gf256_mve(bC_mve, btriA, B, BHEIGHT, SIZE_BCOLVEC, BWIDTH, SIZE_BATCH);
+        
+        if (memcmp(bC, bC_mve, sizeof(bC))) {
+            printf("bc_ref = [");
+            int size = sizeof(bC);
+            for (int i = 0; i < size; i++) {
+                printf("%02x ", bC[i]);
+            }
+            printf("]\n");
+            printf("bc_mve = [");
+            for (int i = 0; i < size; i++) {
+                printf("%02x ", bC_mve[i]);
+            }
+            printf("]\n");
+            fail = 1;
+            break;
+        }
+    }
+
+    printf((fail) ? "TEST FAIL.!\n" : "TEST PASS.\n"); 
+    return 0;
+}
+
 static inline uint32_t gf256v_mul_u32(uint32_t a, uint8_t b) {
     uint32_t a_msb;
     uint32_t a32 = a;
@@ -202,47 +247,4 @@ void batch_2trimat_madd_gf256( unsigned char *bC, const unsigned char *btriA,
             bC += size_batch; 
         }
     }
-}
-
-void batch_2trimat_madd_gf256_mve( unsigned char *bC, const unsigned char *btriA,
-    const unsigned char *B, unsigned Bheight, unsigned size_Bcolvec, unsigned Bwidth, unsigned size_batch );
-
-int main(void)
-{
-    printf("=== UOV-Ip: gf256trimat_2trimat_madd 68_68_44_44 Unit Test ===\n");
-    unsigned char btriA[SIZE_BATCH * BHEIGHT * (BHEIGHT + 1) / 2]; 
-    unsigned char B[BHEIGHT * BWIDTH];
-    unsigned char bC[SIZE_BATCH * (BHEIGHT * BWIDTH)];
-    unsigned char bC_mve[SIZE_BATCH * (BHEIGHT * BWIDTH)];
-
-    int fail = 0;
-    for (int l = 1; l <= TEST_RUN; l++) {
-        memset(bC, 0, sizeof(bC));
-        memset(bC_mve, 0, sizeof(bC_mve));
-        randombytes((uint8_t*) btriA, sizeof(btriA));
-        randombytes((uint8_t*) B, sizeof(B));
-        
-        // batch_2trimat_madd( S, P1, sk_O, _V, _V_BYTE, _O, _O_BYTE )
-        batch_2trimat_madd_gf256(bC, btriA, B, BHEIGHT, SIZE_BCOLVEC, BWIDTH, SIZE_BATCH);
-        batch_2trimat_madd_gf256_mve(bC_mve, btriA, B, BHEIGHT, SIZE_BCOLVEC, BWIDTH, SIZE_BATCH);
-        
-        if (memcmp(bC, bC_mve, sizeof(bC))) {
-            printf("bc_ref = [");
-            int size = sizeof(bC);
-            for (int i = 0; i < size; i++) {
-                printf("%02x ", bC[i]);
-            }
-            printf("]\n");
-            printf("bc_mve = [");
-            for (int i = 0; i < size; i++) {
-                printf("%02x ", bC_mve[i]);
-            }
-            printf("]\n");
-            fail = 1;
-            break;
-        }
-    }
-
-    printf((fail) ? "TEST FAIL.!\n" : "TEST PASS.\n"); 
-    return 0;
 }
