@@ -7,51 +7,8 @@
 
 #define TEST_RUN 100
 
+static uint32_t gf256v_mul_u32(uint32_t a, uint8_t b);
 void vec_scalar_mul_gf256(uint32_t *out_vec, uint32_t *in_vec, uint8_t scalar);
-
-static inline uint32_t gf256v_mul_u32(uint32_t a, uint8_t b) {
-    uint32_t a_msb;
-    uint32_t a32 = a;
-    uint32_t b32 = b;
-    uint32_t r32 = a32 * (b32 & 1);
-
-    a_msb = a32 & 0x80808080; // MSB, 7th bits
-    a32 ^= a_msb;   // clear MSB
-    a32 = (a32 << 1) ^ ((a_msb >> 7) * 0x1b);
-    r32 ^= (a32) * ((b32 >> 1) & 1);
-
-    a_msb = a32 & 0x80808080; // MSB, 7th bits
-    a32 ^= a_msb;   // clear MSB
-    a32 = (a32 << 1) ^ ((a_msb >> 7) * 0x1b);
-    r32 ^= (a32) * ((b32 >> 2) & 1);
-
-    a_msb = a32 & 0x80808080; // MSB, 7th bits
-    a32 ^= a_msb;   // clear MSB
-    a32 = (a32 << 1) ^ ((a_msb >> 7) * 0x1b);
-    r32 ^= (a32) * ((b32 >> 3) & 1);
-
-    a_msb = a32 & 0x80808080; // MSB, 7th bits
-    a32 ^= a_msb;   // clear MSB
-    a32 = (a32 << 1) ^ ((a_msb >> 7) * 0x1b);
-    r32 ^= (a32) * ((b32 >> 4) & 1);
-
-    a_msb = a32 & 0x80808080; // MSB, 7th bits
-    a32 ^= a_msb;   // clear MSB
-    a32 = (a32 << 1) ^ ((a_msb >> 7) * 0x1b);
-    r32 ^= (a32) * ((b32 >> 5) & 1);
-
-    a_msb = a32 & 0x80808080; // MSB, 7th bits
-    a32 ^= a_msb;   // clear MSB
-    a32 = (a32 << 1) ^ ((a_msb >> 7) * 0x1b);
-    r32 ^= (a32) * ((b32 >> 6) & 1);
-
-    a_msb = a32 & 0x80808080; // MSB, 7th bits
-    a32 ^= a_msb;   // clear MSB
-    a32 = (a32 << 1) ^ ((a_msb >> 7) * 0x1b);
-    r32 ^= (a32) * ((b32 >> 7) & 1);
-
-    return r32;
-}
 
 int main (void)
 {
@@ -102,4 +59,48 @@ int main (void)
         }
     }
     return( 0 );
+}
+
+static inline uint32_t gf256v_mul_u32(uint32_t a, uint8_t b) {
+    uint32_t a_msb;
+    uint32_t a32 = a;
+    uint32_t b32 = b;
+    uint32_t r32 = a32 * (b32 & 1);
+
+    a_msb = a32 & 0x80808080; // MSB, 7th bits
+    a32 ^= a_msb;   // clear MSB
+    a32 = (a32 << 1) ^ ((a_msb >> 7) * 0x1b);
+    r32 ^= (a32) * ((b32 >> 1) & 1);
+
+    a_msb = a32 & 0x80808080; // MSB, 7th bits
+    a32 ^= a_msb;   // clear MSB
+    a32 = (a32 << 1) ^ ((a_msb >> 7) * 0x1b);
+    r32 ^= (a32) * ((b32 >> 2) & 1);
+
+    a_msb = a32 & 0x80808080; // MSB, 7th bits
+    a32 ^= a_msb;   // clear MSB
+    a32 = (a32 << 1) ^ ((a_msb >> 7) * 0x1b);
+    r32 ^= (a32) * ((b32 >> 3) & 1);
+
+    a_msb = a32 & 0x80808080; // MSB, 7th bits
+    a32 ^= a_msb;   // clear MSB
+    a32 = (a32 << 1) ^ ((a_msb >> 7) * 0x1b);
+    r32 ^= (a32) * ((b32 >> 4) & 1);
+
+    a_msb = a32 & 0x80808080; // MSB, 7th bits
+    a32 ^= a_msb;   // clear MSB
+    a32 = (a32 << 1) ^ ((a_msb >> 7) * 0x1b);
+    r32 ^= (a32) * ((b32 >> 5) & 1);
+
+    a_msb = a32 & 0x80808080; // MSB, 7th bits
+    a32 ^= a_msb;   // clear MSB
+    a32 = (a32 << 1) ^ ((a_msb >> 7) * 0x1b);
+    r32 ^= (a32) * ((b32 >> 6) & 1);
+
+    a_msb = a32 & 0x80808080; // MSB, 7th bits
+    a32 ^= a_msb;   // clear MSB
+    a32 = (a32 << 1) ^ ((a_msb >> 7) * 0x1b);
+    r32 ^= (a32) * ((b32 >> 7) & 1);
+
+    return r32;
 }
