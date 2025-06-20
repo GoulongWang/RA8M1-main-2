@@ -3,9 +3,8 @@
 #include <stdint.h>
 #include <string.h>
 #include "../../randombytes.h"
-#define TEST_RUN 100
 
-#define gf256v_add _gf256v_add_u32
+#define TEST_RUN 100
 #define gf16v_madd _gf16v_madd_u32
 
 void gf16mat_prod_ref(uint8_t *c, const uint8_t *matA, unsigned n_A_vec_byte, unsigned n_A_width, const uint8_t *b);
@@ -259,35 +258,6 @@ static inline void _gf16v_madd_u32(uint8_t *accu_c, const uint8_t *a, uint8_t gf
     t.u32 = gf16v_mul_u32(t.u32, gf16_b);
     for (unsigned i = 0; i < _num_byte; i++) {
         accu_c[i] ^= t.u8[i];
-    }
-}
-
-static inline void _gf256v_add_u32_aligned(uint8_t *accu_b, const uint8_t *a, unsigned _num_byte) {
-    while ( _num_byte >= 4 ) {
-        uint32_t *bx = (uint32_t *)accu_b;
-        uint32_t *ax = (uint32_t *)a;
-        bx[0] ^= ax[0];
-        a += 4;
-        accu_b += 4;
-        _num_byte -= 4;
-    }
-    while ( _num_byte ) {
-        _num_byte--;
-        accu_b[_num_byte] ^= a[_num_byte];
-    }
-}
-
-static inline void _gf256v_add_u32(uint8_t *accu_b, const uint8_t *a, unsigned _num_byte) {
-    uintptr_t bp = (uintptr_t)(const void *)accu_b;
-    uintptr_t ap = (uintptr_t)(const void *)a;
-    if ( !((bp & 3) || (ap & 3) || (_num_byte < 8)) ) {
-        _gf256v_add_u32_aligned(accu_b, a, _num_byte);
-        return;
-    }
-
-    while ( _num_byte ) {
-        _num_byte--;
-        accu_b[_num_byte] ^= a[_num_byte];
     }
 }
 
