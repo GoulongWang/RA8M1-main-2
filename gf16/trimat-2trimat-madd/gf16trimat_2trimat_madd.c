@@ -14,6 +14,49 @@
 #define gf16v_madd _gf16v_madd_u32
 #define gf256v_add _gf256v_add_u32
 
+void batch_2trimat_madd_gf16( unsigned char *bC, const unsigned char *btriA,
+    const unsigned char *B, unsigned Bheight, unsigned size_Bcolvec, unsigned Bwidth, unsigned size_batch );
+void batch_2trimat_madd_gf16_mve( unsigned char *bC, const unsigned char *btriA,
+    const unsigned char *B, unsigned Bheight, unsigned size_Bcolvec, unsigned Bwidth, unsigned size_batch );
+
+int main(void)
+{
+    printf("=== UOV-Is: gf16trimat_2trimat_madd 96_48_64_32 Unit Test ===\n");
+    uint8_t btriA[SIZE_BATCH * BHEIGHT * (BHEIGHT + 1) / 2]; 
+    uint8_t B[(BHEIGHT * BWIDTH) / 2];
+    uint8_t bC[SIZE_BATCH * (BHEIGHT * BWIDTH)];
+    uint8_t bC_mve[SIZE_BATCH * (BHEIGHT * BWIDTH)];
+
+    int fail = 0;
+    for (int l = 1; l <= TEST_RUN; l++) {
+        memset(bC, 0, sizeof(bC));
+        memset(bC_mve, 0, sizeof(bC_mve));
+        randombytes((uint8_t*) btriA, sizeof(btriA));
+        randombytes((uint8_t*) B, sizeof(B));
+        
+        batch_2trimat_madd_gf16(bC, btriA, B, BHEIGHT, SIZE_BCOLVEC, BWIDTH, SIZE_BATCH);
+        batch_2trimat_madd_gf16_mve(bC_mve, btriA, B, BHEIGHT, SIZE_BCOLVEC, BWIDTH, SIZE_BATCH);
+        
+        if (memcmp(bC, bC_mve, sizeof(bC))) {
+            printf("bc_ref = [");
+            for (int i = 0; i < sizeof(bC); i++) {
+                printf("%02x ", bC[i]);
+            }
+            printf("]\n");
+            printf("bc_mve = [");
+            for (int i = 0; i < sizeof(bC_mve); i++) {
+                printf("%02x ", bC_mve[i]);
+            }
+            printf("]\n");
+            fail = 1;
+            break;
+        }
+    }
+
+    printf((fail) ? "TEST FAIL.!\n" : "TEST PASS.\n"); 
+    return 0;
+}
+
 static inline uint32_t gf16v_mul_u32(uint32_t a, uint8_t b) {
     uint32_t a_msb;
     uint32_t a32 = a;
@@ -123,7 +166,6 @@ static inline uint8_t gf16v_get_ele(const uint8_t *a, unsigned i) {
     return (i & 1) ? (r >> 4) : (r & 0xf);
 }
 
-
 void gf16mat_prod_ref(uint8_t *c, const uint8_t *matA, unsigned n_A_vec_byte, unsigned n_A_width, const uint8_t *b) {
     gf256v_set_zero(c, n_A_vec_byte);
     for (unsigned i = 0; i < n_A_width; i++) {
@@ -132,7 +174,6 @@ void gf16mat_prod_ref(uint8_t *c, const uint8_t *matA, unsigned n_A_vec_byte, un
         matA += n_A_vec_byte;
     }
 }
-
 
 void gf16mat_prod(uint8_t *c, const uint8_t *matA, unsigned n_A_vec_byte, unsigned n_A_width, const uint8_t *b) {
     gf16mat_prod_impl( c, matA, n_A_vec_byte, n_A_width, b);
@@ -195,45 +236,4 @@ uint8_t tmp_Arow[MAX_V * MAX_O_BYTE];
             bC += size_batch;  
         }
     }
-}
-
-void batch_2trimat_madd_gf16_mve( unsigned char *bC, const unsigned char *btriA,
-    const unsigned char *B, unsigned Bheight, unsigned size_Bcolvec, unsigned Bwidth, unsigned size_batch );
-
-int main(void)
-{
-    printf("=== UOV-Is: gf16trimat_2trimat_madd 96_48_64_32 Unit Test ===\n");
-    unsigned char btriA[SIZE_BATCH * BHEIGHT * (BHEIGHT + 1) / 2]; 
-    unsigned char B[(BHEIGHT * BWIDTH) / 2];
-    unsigned char bC[SIZE_BATCH * (BHEIGHT * BWIDTH)];
-    unsigned char bC_mve[SIZE_BATCH * (BHEIGHT * BWIDTH)];
-
-    int fail = 0;
-    for (int l = 1; l <= TEST_RUN; l++) {
-        memset(bC, 0, sizeof(bC));
-        memset(bC_mve, 0, sizeof(bC_mve));
-        randombytes((uint8_t*) btriA, sizeof(btriA));
-        randombytes((uint8_t*) B, sizeof(B));
-        
-        batch_2trimat_madd_gf16(bC, btriA, B, BHEIGHT, SIZE_BCOLVEC, BWIDTH, SIZE_BATCH);
-        batch_2trimat_madd_gf16_mve(bC_mve, btriA, B, BHEIGHT, SIZE_BCOLVEC, BWIDTH, SIZE_BATCH);
-        
-        if (memcmp(bC, bC_mve, sizeof(bC))) {
-            printf("bc_ref = [");
-            for (int i = 0; i < sizeof(bC); i++) {
-                printf("%02x ", bC[i]);
-            }
-            printf("]\n");
-            printf("bc_mve = [");
-            for (int i = 0; i < sizeof(bC_mve); i++) {
-                printf("%02x ", bC_mve[i]);
-            }
-            printf("]\n");
-            fail = 1;
-            break;
-        }
-    }
-
-    printf((fail) ? "TEST FAIL.!\n" : "TEST PASS.\n"); 
-    return 0;
 }
