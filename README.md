@@ -25,7 +25,7 @@ printf "Sleep 2000\nLoadFile bench_ra8m1.elf\ngo\nSleep 3600000" | JLinkExe -if 
 | UOV-Is: gf16trimat_2trimat_madd 96_48_64_32| 103,977,285 |776,791,141|114,558,066|
 | GF16 ov_publicmap | 518,931 | 792,646 | |
 | UOV-Ip: gf256mat_prod 1936_68 | 1188551 | 3088048 |          1397865 |
-| UOV-Ip: gf256mat_prod 68_44   | 31962   |  127600 |            33342 |
+| UOV-Ip: gf256mat_prod 68_44   | 32946   |  145800 |            33619 |
 | UOV-Ip: gf256mat_prod 44_X    | 10511   |   31539 |            11261 |
 | UOV-Ip: gf256trimat_2trimat_madd 68_68_44_44 | 96,998,349 | 187,126,589 | 104,198,645 |
 
