@@ -4,9 +4,8 @@
 - An extension on VSCode called "Cortex Debug"
 ### How to run
 1. In the terminal, set the ARM GCC toolchain path by entering: 
-```set ARM_GCC_TOOLCHAIN_PATH="/opt/homebrew/opt/arm-none-eabi-gcc/bin"```
-2. In VScode, select the [GCC 14.2.1 arm-none-eabi] Kit from the status bar, then click `Build` to generate `bench_ra8m1.elf`
- (**If you modify the code, click `Build` again**)
+```export ARM_TOOLCHAIN_PATH="/opt/homebrew/opt/arm-none-eabi-gcc/bin"```
+2. ```cmake -DCMAKE_TOOLCHAIN_FILE=cmake/gcc.cmake -G Ninja -B build/Debug```
 3. In the terminal, execute the following commands:
 ```
 cd build/Debug
