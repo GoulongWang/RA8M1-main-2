@@ -29,17 +29,70 @@
 #define _PUB_M_BYTE (_PUB_M / 2)
 #define _GFSIZE 16
 
+
+static volatile unsigned long long overflowcnt = 0;
+
+
+void SysTick_Handler(void)
+{
+   ++overflowcnt;
+}
+
+
+uint64_t hal_get_time();
+
+typedef struct
+{
+    uint32_t systick_cycles;
+    uint32_t pmu_cycles;
+
+    uint32_t inst_all;
+
+    uint32_t inst_mve_all;
+    uint32_t inst_mve_lsu;
+    uint32_t inst_mve_int;
+    uint32_t inst_mve_mul;
+
+    uint32_t stall_all;
+    uint32_t stall_mve_all;
+    uint32_t stall_mve_resource;
+} pmu_stats;
+
+void PMU_Init();
+void PMU_Finalize();
+void PMU_Init_Status( pmu_stats *s );
+void PMU_Finalize_Status( pmu_stats *s );
+void PMU_Send_Status( char *s, pmu_stats const *stats );
+
+
+
 #define bench_cycles(CALL, OUT_VAR)                                    \
     do {                                                               \
         __disable_irq();                                               \
+        pmu_stats stats;                                                \
+        PMU_Init_Status(&stats);                                        \
         ARM_PMU_CYCCNT_Reset();                                        \
-        ARM_PMU_CNTR_Enable(PMU_CNTENSET_CCNTR_ENABLE_Msk);            \
+        ARM_PMU_CNTR_Enable(PMU_CNTENSET_CCNTR_ENABLE_Msk);            \        
         CALL;                                                          \
         ARM_PMU_CNTR_Disable(PMU_CNTENCLR_CCNTR_ENABLE_Msk);           \
+        PMU_Finalize_Status(&stats);                                    \
+        PMU_Send_Status("", &stats);                                    \
         printf(#CALL ": cycles = %" PRIu32 "\n", ARM_PMU_Get_CCNTR()); \
         OUT_VAR = ARM_PMU_Get_CCNTR();                                 \
         __enable_irq();                                                \
     } while (0)
+
+// #define bench_cycles(CALL, OUT_VAR)                                    \
+//     do {                                                               \
+//         __disable_irq();                                               \
+//         ARM_PMU_CYCCNT_Reset();                                        \
+//         ARM_PMU_CNTR_Enable(PMU_CNTENSET_CCNTR_ENABLE_Msk);            \
+//         CALL;                                                          \
+//         ARM_PMU_CNTR_Disable(PMU_CNTENCLR_CCNTR_ENABLE_Msk);           \
+//         printf(#CALL ": cycles = %" PRIu32 "\n", ARM_PMU_Get_CCNTR()); \
+//         OUT_VAR = ARM_PMU_Get_CCNTR();                                 \
+//         __enable_irq();                                                \
+//     } while (0)
 
 void gf16mat_prod_2048_96(uint8_t *c, const uint8_t *matA, const uint8_t *b);
 void gf16mat_prod_48_64(uint8_t *c, const uint8_t *matA, const uint8_t *b);
@@ -58,6 +111,8 @@ void benchmark_gf16mat_prod_48_64();
 void benchmark_gf16mat_prod_32_X();
 void benchmark_gf16trimat_2trimat_madd_96_48_64_32();
 void benchmark_ov_publicmap();
+
+
 
 ITCM_FN int main(void) {
     Utils_Init();
@@ -578,4 +633,18 @@ void benchmark_ov_publicmap(){
     printf("Average ref cycles = %lu\n", sum_ref / TEST_RUN);
     printf("Average MVE cycles = %lu\n", sum_mve / TEST_RUN);
 }
+
+
+uint64_t hal_get_time(){
+  while (1) {
+    unsigned long long before = overflowcnt;
+    unsigned long long result = (before + 1) * 16777216llu - SysTick->VAL;
+    if (overflowcnt == before) {
+      return result;
+    }
+  }
+}
+
+
+
 #endif
