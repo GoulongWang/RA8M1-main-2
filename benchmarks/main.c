@@ -15,6 +15,7 @@
 #include "randombytes.h"
 
 #define TEST_RUN 100
+#define REPEAT  1
 #define gf16v_madd  _gf16v_madd_u32
 #define gf256v_add  _gf256v_add_u32
 #define gf256v_madd _gf256v_madd_u32
@@ -41,23 +42,6 @@ void SysTick_Handler(void)
 
 uint64_t hal_get_time();
 
-typedef struct
-{
-    uint32_t systick_cycles;
-    uint32_t pmu_cycles;
-
-    uint32_t inst_all;
-
-    uint32_t inst_mve_all;
-    uint32_t inst_mve_lsu;
-    uint32_t inst_mve_int;
-    uint32_t inst_mve_mul;
-
-    uint32_t stall_all;
-    uint32_t stall_mve_all;
-    uint32_t stall_mve_resource;
-} pmu_stats;
-
 void PMU_Init();
 void PMU_Finalize();
 void PMU_Init_Status( pmu_stats *s );
@@ -65,34 +49,42 @@ void PMU_Finalize_Status( pmu_stats *s );
 void PMU_Send_Status( char *s, pmu_stats const *stats );
 
 
+#define BENCH_GF16MAT_PROD(fun, out, mat, vec, width) do {               \
+    pmu_stats stats;                                                       \
+    PMU_Init_Status(&stats);                                               \
+    for (size_t cnt = 0; cnt < REPEAT; cnt++) {                          \
+        fun(out, mat, vec, width); \
+    }                                                                      \
+    PMU_Finalize_Status(&stats);                                           \
+    PMU_Send_Status(#fun, &stats);                                         \
+    printf("stats.pmu_cycles: %" PRIu32 " cycles\n",                               \
+                 stats.pmu_cycles);                     \
+} while (0)
+
+#define BENCH_GF16MAT_PROD_REF(fun, out, matA, n_A_vec_byte, n_A_width, b)  \
+do {                                                                        \
+    pmu_stats stats;                                                        \
+    PMU_Init_Status(&stats);                                                \
+    for (size_t cnt = 0; cnt < REPEAT; cnt++) {                           \
+        fun(out, matA, n_A_vec_byte, n_A_width, b);                           \
+    }                                                                       \
+    PMU_Finalize_Status(&stats);                                            \
+    PMU_Send_Status(#fun, &stats);                                          \
+    printf(#fun ": %" PRIu32 " cycles (avg)\n",                                \
+           stats.pmu_cycles);                               \
+} while(0)
 
 #define bench_cycles(CALL, OUT_VAR)                                    \
     do {                                                               \
         __disable_irq();                                               \
-        pmu_stats stats;                                                \
-        PMU_Init_Status(&stats);                                        \
         ARM_PMU_CYCCNT_Reset();                                        \
-        ARM_PMU_CNTR_Enable(PMU_CNTENSET_CCNTR_ENABLE_Msk);            \        
+        ARM_PMU_CNTR_Enable(PMU_CNTENSET_CCNTR_ENABLE_Msk);            \
         CALL;                                                          \
         ARM_PMU_CNTR_Disable(PMU_CNTENCLR_CCNTR_ENABLE_Msk);           \
-        PMU_Finalize_Status(&stats);                                    \
-        PMU_Send_Status("", &stats);                                    \
         printf(#CALL ": cycles = %" PRIu32 "\n", ARM_PMU_Get_CCNTR()); \
         OUT_VAR = ARM_PMU_Get_CCNTR();                                 \
         __enable_irq();                                                \
     } while (0)
-
-// #define bench_cycles(CALL, OUT_VAR)                                    \
-//     do {                                                               \
-//         __disable_irq();                                               \
-//         ARM_PMU_CYCCNT_Reset();                                        \
-//         ARM_PMU_CNTR_Enable(PMU_CNTENSET_CCNTR_ENABLE_Msk);            \
-//         CALL;                                                          \
-//         ARM_PMU_CNTR_Disable(PMU_CNTENCLR_CCNTR_ENABLE_Msk);           \
-//         printf(#CALL ": cycles = %" PRIu32 "\n", ARM_PMU_Get_CCNTR()); \
-//         OUT_VAR = ARM_PMU_Get_CCNTR();                                 \
-//         __enable_irq();                                                \
-//     } while (0)
 
 void gf16mat_prod_2048_96(uint8_t *c, const uint8_t *matA, const uint8_t *b);
 void gf16mat_prod_48_64(uint8_t *c, const uint8_t *matA, const uint8_t *b);
@@ -109,19 +101,23 @@ void gf16trimat_2trimat_madd_m4f_96_48_64_32(uint32_t *c, uint32_t *a, uint8_t *
 void benchmark_gf16mat_prod_2048_96();
 void benchmark_gf16mat_prod_48_64();
 void benchmark_gf16mat_prod_32_X();
+void benchmark_gf16mat_prod_32_X_MACRO();
 void benchmark_gf16trimat_2trimat_madd_96_48_64_32();
 void benchmark_ov_publicmap();
+
 
 
 
 ITCM_FN int main(void) {
     Utils_Init();
     PMU_Init();
+    benchmark_gf16mat_prod_32_X_MACRO();
+    benchmark_gf16mat_prod_32_X();
     benchmark_ov_publicmap();
     benchmark_gf16mat_prod_2048_96();
     benchmark_gf16mat_prod_48_64();
-    benchmark_gf16mat_prod_32_X();
     benchmark_gf16trimat_2trimat_madd_96_48_64_32();
+    PMU_Finalize();
     return 0;
 }
 
@@ -499,8 +495,8 @@ void benchmark_gf16mat_prod_32_X(){
 
     int fail = 0;
     for (int l = 1; l <= TEST_RUN; l++) {
-        randombytes((uint8_t*) &N_A_WIDTH_test, sizeof(uint8_t));
-        N_A_WIDTH_test = N_A_WIDTH_test % 32 + 1;
+        randombytes((uint8_t*) &N_A_WIDTH_test, sizeof(uint8_t)); //
+        N_A_WIDTH_test = N_A_WIDTH_test % 32 + 1; //
         uint8_t matA3[ N_A_VEC_BYTE_test * N_A_WIDTH_test ];
         uint8_t vec_B3[N_A_WIDTH_test / 2]; 
         randombytes(matA3, sizeof matA3);
@@ -537,6 +533,28 @@ void benchmark_gf16mat_prod_32_X(){
     printf("Average ref cycles = %lu\n", sum_ref / TEST_RUN);
     printf("Average MVE cycles = %lu\n", sum_mve / TEST_RUN);
     printf("Average M4  cycles = %lu\n", sum_m4 / TEST_RUN);
+}
+
+void benchmark_gf16mat_prod_32_X_MACRO(){
+    printf("\n\n=== UOV-Is: gf16mat_prod 32_X Unit Test, REPEAT: %d ===\n", REPEAT);
+    uint8_t N_A_WIDTH_test = 32;
+    uint8_t N_A_VEC_BYTE_test = 32;
+    uint8_t out_ref[ N_A_VEC_BYTE_test ];
+    uint8_t out_mve[ N_A_VEC_BYTE_test ];
+    uint8_t out_m4[ N_A_VEC_BYTE_test ];
+    
+
+    uint8_t matA3[ N_A_VEC_BYTE_test * N_A_WIDTH_test ];
+    uint8_t vec_B3[N_A_WIDTH_test / 2]; 
+    randombytes(matA3, sizeof matA3);
+    randombytes(vec_B3, sizeof vec_B3);
+    memset(out_ref, 0, sizeof(out_ref));
+    memset(out_mve, 0, sizeof(out_mve));
+    memset(out_m4, 0, sizeof(out_m4));
+    
+    BENCH_GF16MAT_PROD_REF(gf16mat_prod_ref, out_ref, matA3, N_A_VEC_BYTE_test, N_A_WIDTH_test, vec_B3);
+    BENCH_GF16MAT_PROD(gf16mat_prod_32_X, out_mve, matA3, vec_B3, 32);
+    BENCH_GF16MAT_PROD(gf16mat_prod_m4f_32_X_normal_normal, out_m4, matA3, vec_B3, 32);
 }
 
 void benchmark_gf16trimat_2trimat_madd_96_48_64_32(){
@@ -633,7 +651,6 @@ void benchmark_ov_publicmap(){
     printf("Average ref cycles = %lu\n", sum_ref / TEST_RUN);
     printf("Average MVE cycles = %lu\n", sum_mve / TEST_RUN);
 }
-
 
 uint64_t hal_get_time(){
   while (1) {

@@ -15,6 +15,26 @@ void delay_ms(uint32_t ms);
 int utils_putchar(char c);
 void utils_exit(int retcode);
 
+typedef struct
+{
+    uint32_t systick_cycles;
+    uint32_t pmu_cycles;
+
+    uint32_t inst_all;
+
+    uint32_t inst_mve_all;
+    uint32_t inst_mve_lsu;
+    uint32_t inst_mve_int;
+    uint32_t inst_mve_mul;
+
+    uint32_t stall_all;
+    uint32_t stall_mve_all;
+    uint32_t stall_mve_resource;
+} pmu_stats;
+
+void PMU_Finalize_Status( pmu_stats *s);
+void PMU_Send_Status( char *s, pmu_stats const *stats );
+
 #ifdef RA8M1
 #define ITCM_FN __attribute__((section(".itcm_data")))
 #define DTCM_DATA __attribute__((section(".dtcm_data")))
