@@ -1,3 +1,15 @@
+# === 處理 openssl
+OPENSSL_DIR := $(shell brew --prefix openssl@3)
+# 把 include 目錄加到編譯期
+CFLAGS  += -I$(OPENSSL_DIR)/include
+
+# 把 lib 目錄加到連結期
+LDFLAGS += -L$(OPENSSL_DIR)/lib
+
+# 把需要的 libssl / libcrypto 加到連結清單
+LDLIBS  += -lssl -lcrypto
+# ===
+
 CFLAGS += \
 	-O3 \
 	-Wall -Wextra -Wshadow \
@@ -46,6 +58,9 @@ run-trimat-2trimat-madd-gf256.elf: trimat_2trimat_madd_gf256.elf
 run-uov-publicmap.elf: uov-publicmap.elf
 	qemu-system-arm -M mps3-an547 -nographic -semihosting -kernel $<
 
+run-uov-Is.elf: uov-Is.elf
+	qemu-system-arm -M mps3-an547 -nographic -semihosting -kernel $<
+
 %.elf: %.c.o $(OBJS) $(LDSCRIPT) $(LIBDEBS)
 	$(LD) $(LDFLAGS) -o $@ $(OBJS) -Wl,--start-group $(LDLIBS) -Wl,--end-group
 
@@ -77,6 +92,10 @@ trimat_2trimat_madd_gf256.elf: gf256/trimat-2trimat-madd/gf256trimat_2trimat_mad
 
 uov-publicmap.elf: gf16/uov-publicmap/ov_publicmap.c.o randombytes.c.o gf16/uov-publicmap/ov_publicmap.S.o $(LDSCRIPT) $(LIBDEBS)
 	$(LD) $(LDFLAGS) -o $@ gf16/uov-publicmap/ov_publicmap.c.o randombytes.c.o gf16/uov-publicmap/ov_publicmap.S.o -Wl,--start-group $(LDLIBS) -Wl,--end-group
+
+uov-Is.elf: gf16/UOV-Is/sign_api-test.c.o randombytes.c.o $(LDSCRIPT) $(LIBDEBS)
+	$(LD) $(LDFLAGS) -o $@ gf16/UOV-Is/sign_api-test.c.o randombytes.c.o -Wl,--start-group $(LDLIBS) -Wl,--end-group
+
 
 # Dependencies for macro file
 vec_scalar_mul_gf16_mve.S.o:  vec_scalar_mul_gf16_mve.i
