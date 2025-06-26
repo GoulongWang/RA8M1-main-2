@@ -74,6 +74,18 @@ do {                                                                        \
            stats.pmu_cycles);                               \
 } while(0)
 
+#define BENCH_OV_PUBLICMAP(fun, acc, P, sig) do {               \
+    pmu_stats stats;                                                       \
+    PMU_Init_Status(&stats);                                               \
+    for (size_t cnt = 0; cnt < REPEAT; cnt++) {                          \
+        fun(acc, P, sig); \
+    }                                                                      \
+    PMU_Finalize_Status(&stats);                                           \
+    PMU_Send_Status(#fun, &stats);                                         \
+    printf("stats.pmu_cycles: %" PRIu32 " cycles\n",                               \
+                 stats.pmu_cycles);                     \
+} while (0)
+
 #define bench_cycles(CALL, OUT_VAR)                                    \
     do {                                                               \
         __disable_irq();                                               \
@@ -103,6 +115,7 @@ void benchmark_gf16mat_prod_48_64();
 void benchmark_gf16mat_prod_32_X();
 void benchmark_gf16mat_prod_32_X_MACRO();
 void benchmark_gf16trimat_2trimat_madd_96_48_64_32();
+void benchmark_ov_publicmap_MACRO();
 void benchmark_ov_publicmap();
 
 
@@ -111,12 +124,13 @@ void benchmark_ov_publicmap();
 ITCM_FN int main(void) {
     Utils_Init();
     PMU_Init();
-    benchmark_gf16mat_prod_32_X_MACRO();
-    benchmark_gf16mat_prod_32_X();
+    // benchmark_gf16mat_prod_32_X_MACRO();
+    // benchmark_gf16mat_prod_32_X();
+    benchmark_ov_publicmap_MACRO();
     benchmark_ov_publicmap();
-    benchmark_gf16mat_prod_2048_96();
-    benchmark_gf16mat_prod_48_64();
-    benchmark_gf16trimat_2trimat_madd_96_48_64_32();
+    // benchmark_gf16mat_prod_2048_96();
+    // benchmark_gf16mat_prod_48_64();
+    // benchmark_gf16trimat_2trimat_madd_96_48_64_32();
     PMU_Finalize();
     return 0;
 }
@@ -650,6 +664,21 @@ void benchmark_ov_publicmap(){
     printf((fail) ? "TEST FAIL.!\n" : "TEST PASS.\n");
     printf("Average ref cycles = %lu\n", sum_ref / TEST_RUN);
     printf("Average MVE cycles = %lu\n", sum_mve / TEST_RUN);
+}
+
+void benchmark_ov_publicmap_MACRO(){
+    uint8_t P[M * N * (N + 1) / 4];
+    uint8_t sig[N / 2];
+    uint8_t acc[M / 2], acc_mve[M / 2];
+
+    memset(acc, 0, sizeof(acc));
+    memset(acc_mve, 0, sizeof(acc_mve));
+    randombytes(P, sizeof(P));
+    randombytes(sig, sizeof sig);
+
+    BENCH_OV_PUBLICMAP(ov_publicmap, acc, P, sig);
+    BENCH_OV_PUBLICMAP(ov_publicmap_mve, acc_mve, P, sig);
+
 }
 
 uint64_t hal_get_time(){
