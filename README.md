@@ -53,6 +53,11 @@ make run-trimat-2trimat-madd-gf16.elf
 make run-uov-publicmap.elf
 ```
 
+### UOV-Is (Working-On)
+```
+make run-uov-Is.elf
+```
+
 ### GF16 MAYO Matrix Multiplication
 ```
 make run-mayo-mat.elf
