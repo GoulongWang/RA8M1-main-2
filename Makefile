@@ -93,9 +93,17 @@ trimat_2trimat_madd_gf256.elf: gf256/trimat-2trimat-madd/gf256trimat_2trimat_mad
 uov-publicmap.elf: gf16/uov-publicmap/ov_publicmap.c.o randombytes.c.o gf16/uov-publicmap/ov_publicmap.S.o $(LDSCRIPT) $(LIBDEBS)
 	$(LD) $(LDFLAGS) -o $@ gf16/uov-publicmap/ov_publicmap.c.o randombytes.c.o gf16/uov-publicmap/ov_publicmap.S.o -Wl,--start-group $(LDLIBS) -Wl,--end-group
 
-uov-Is.elf: gf16/UOV-Is/sign_api-test.c.o randombytes.c.o $(LDSCRIPT) $(LIBDEBS)
-	$(LD) $(LDFLAGS) -o $@ gf16/UOV-Is/sign_api-test.c.o randombytes.c.o -Wl,--start-group $(LDLIBS) -Wl,--end-group
+# uov-Is.elf: gf16/UOV-Is/sign_api-test.c.o gf16/UOV-Is/sign.c.o randombytes.c.o $(LDSCRIPT) $(LIBDEBS)
+# 	$(LD) $(LDFLAGS) -o $@ gf16/UOV-Is/sign_api-test.c.o randombytes.c.o gf16/UOV-Is/sign.c.o -Wl,--start-group $(LDLIBS) -Wl,--end-group
+UOV_IS_DIR := gf16/UOV-Is
+#UOV_IS_SRCS := sign_api-test.c sign.c utils_randombytes.c ov.c ov_keypair.c utils_randombytes.c utils_hash.c blas_matrix.c
+#UOV_IS_OBJS := $(addprefix $(UOV_IS_DIR)/,$(patsubst %.c,%.c.o,$(UOV_IS_SRCS)))
 
+UOV_IS_SRCS := $(wildcard $(UOV_IS_DIR)/*.c)
+UOV_IS_OBJS := $(patsubst %.c,%.c.o,$(UOV_IS_SRCS))
+
+uov-Is.elf: $(UOV_IS_OBJS) randombytes.c.o $(LDSCRIPT) $(LIBDEBS)
+	$(LD) $(LDFLAGS) -o $@ $(UOV_IS_OBJS) randombytes.c.o -Wl,--start-group $(LDLIBS) -Wl,--end-group
 
 # Dependencies for macro file
 vec_scalar_mul_gf16_mve.S.o:  vec_scalar_mul_gf16_mve.i
