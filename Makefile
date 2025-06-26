@@ -28,8 +28,6 @@ LIBDEBS=libhal.a
 
 OBJS= gf16/vector-scalar-multiplication/vec_scalar_mul_gf16_mve.c.o randombytes.c.o gf16/vector-scalar-multiplication/vec_scalar_mul_gf16_mve.S.o gf16/vector-scalar-multiplication/mat_vec_mul_gf16_mve.S.o
 
-#all: vec_scalar_gf16.elf mat_vec_gf16.elf
-
 objs = $(addsuffix .o,$(1))
 PLATFORM ?= mps3-an547
 include platform/$(PLATFORM).mk
@@ -90,8 +88,11 @@ trimat_2trimat_madd_gf16.elf: gf16/trimat-2trimat-madd/gf16trimat_2trimat_madd.c
 trimat_2trimat_madd_gf256.elf: gf256/trimat-2trimat-madd/gf256trimat_2trimat_madd.c.o randombytes.c.o gf256/trimat-2trimat-madd/gf256trimat_2trimat_madd.S.o $(LDSCRIPT) $(LIBDEBS)
 	$(LD) $(LDFLAGS) -o $@ gf256/trimat-2trimat-madd/gf256trimat_2trimat_madd.c.o randombytes.c.o gf256/trimat-2trimat-madd/gf256trimat_2trimat_madd.S.o -Wl,--start-group $(LDLIBS) -Wl,--end-group
 
-uov-publicmap.elf: gf16/uov-publicmap/ov_publicmap.c.o randombytes.c.o gf16/uov-publicmap/ov_publicmap.S.o $(LDSCRIPT) $(LIBDEBS)
-	$(LD) $(LDFLAGS) -o $@ gf16/uov-publicmap/ov_publicmap.c.o randombytes.c.o gf16/uov-publicmap/ov_publicmap.S.o -Wl,--start-group $(LDLIBS) -Wl,--end-group
+UOV_PUBLICMAP_DIR  := gf16/uov-publicmap
+UOV_PUBLICMAP_SRCS := $(wildcard $(UOV_PUBLICMAP_DIR)/*.c $(UOV_PUBLICMAP_DIR)/*.S)
+UOV_PUBLICMAP_OBJS := $(addsuffix .o,$(UOV_PUBLICMAP_SRCS))
+uov-publicmap.elf: $(UOV_PUBLICMAP_OBJS) randombytes.c.o $(LDSCRIPT) $(LIBDEBS)
+	$(LD) $(LDFLAGS) -o $@ $(UOV_PUBLICMAP_OBJS) randombytes.c.o -Wl,--start-group $(LDLIBS) -Wl,--end-group
 
 # uov-Is.elf: gf16/UOV-Is/sign_api-test.c.o gf16/UOV-Is/sign.c.o randombytes.c.o $(LDSCRIPT) $(LIBDEBS)
 # 	$(LD) $(LDFLAGS) -o $@ gf16/UOV-Is/sign_api-test.c.o randombytes.c.o gf16/UOV-Is/sign.c.o -Wl,--start-group $(LDLIBS) -Wl,--end-group
