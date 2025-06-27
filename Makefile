@@ -73,20 +73,30 @@ mat_vec_gf16.elf: gf16/matrix-vector-multiplication/mve_matrix_mul_gf16_main.c.o
 # 新增 mayo_mat.elf 規則
 mayo_mat.elf: gf16/MAYO-matrix-multiplication/mayo_gf16_mat_vec_mul_mve.c.o randombytes.c.o gf16/MAYO-matrix-multiplication/mul_add_mat_x_m_mat.S.o $(LDSCRIPT) $(LIBDEBS)
 	$(LD) $(LDFLAGS) -o $@ gf16/MAYO-matrix-multiplication/mayo_gf16_mat_vec_mul_mve.c.o randombytes.c.o gf16/MAYO-matrix-multiplication/mul_add_mat_x_m_mat.S.o -Wl,--start-group $(LDLIBS) -Wl,--end-group
-	
-# 新增 mat_vec_mul_gf256.elf 規則
-mat_vec_mul_gf256.elf: gf256/matrix-vector-multiplication/mat_vec_mul_gf256_mve.c.o randombytes.c.o gf256/matrix-vector-multiplication/mat_vec_mul_gf256_mve.S.o $(LDSCRIPT) $(LIBDEBS)
-	$(LD) $(LDFLAGS) -o $@ gf256/matrix-vector-multiplication/mat_vec_mul_gf256_mve.c.o randombytes.c.o gf256/matrix-vector-multiplication/mat_vec_mul_gf256_mve.S.o -Wl,--start-group $(LDLIBS) -Wl,--end-group
 
-# 新增 vec_scalar_mul_gf256.elf 規則
-vec_scalar_mul_gf256.elf: gf256/vector-scalar-multiplication/vec_scalar_mul_gf256_mve.c.o randombytes.c.o gf256/vector-scalar-multiplication/vec_scalar_mul_gf256_mve.S.o $(LDSCRIPT) $(LIBDEBS)
-	$(LD) $(LDFLAGS) -o $@ gf256/vector-scalar-multiplication/vec_scalar_mul_gf256_mve.c.o randombytes.c.o gf256/vector-scalar-multiplication/vec_scalar_mul_gf256_mve.S.o -Wl,--start-group $(LDLIBS) -Wl,--end-group
+GF256_MAT_VEC_MUL_DIR  := gf256/matrix-vector-multiplication/
+GF256_MAT_VEC_MUL_SRCS := $(wildcard $(GF256_VEC_SCALAR_MUL_DIR)/*.c $(GF256_VEC_SCALAR_MUL_DIR)/*.S)
+GF256_MAT_VEC_MUL_OBJS := $(addsuffix .o,$(GF256_VEC_SCALAR_MUL_SRCS))
+mat_vec_mul_gf256.elf: randombytes.c.o $(GF256_MAT_VEC_MUL_OBJS) $(LDSCRIPT) $(LIBDEBS)
+	$(LD) $(LDFLAGS) -o $@ $(GF256_MAT_VEC_MUL_OBJS) randombytes.c.o -Wl,--start-group $(LDLIBS) -Wl,--end-group
 
-trimat_2trimat_madd_gf16.elf: gf16/trimat-2trimat-madd/gf16trimat_2trimat_madd.c.o randombytes.c.o gf16/trimat-2trimat-madd/gf16trimat_2trimat_madd.S.o $(LDSCRIPT) $(LIBDEBS)
-	$(LD) $(LDFLAGS) -o $@ gf16/trimat-2trimat-madd/gf16trimat_2trimat_madd.c.o randombytes.c.o gf16/trimat-2trimat-madd/gf16trimat_2trimat_madd.S.o -Wl,--start-group $(LDLIBS) -Wl,--end-group
+GF256_VEC_SCALAR_MUL_DIR  := gf256/vector-scalar-multiplication/
+GF256_VEC_SCALAR_MUL_SRCS := $(wildcard $(GF256_VEC_SCALAR_MUL_DIR)/*.c $(GF256_VEC_SCALAR_MUL_DIR)/*.S)
+GF256_VEC_SCALAR_MUL_OBJS := $(addsuffix .o,$(GF256_VEC_SCALAR_MUL_SRCS))
+vec_scalar_mul_gf256.elf: randombytes.c.o $(GF256_VEC_SCALAR_MUL_OBJS) $(LDSCRIPT) $(LIBDEBS)
+	$(LD) $(LDFLAGS) -o $@ randombytes.c.o $(GF256_VEC_SCALAR_MUL_OBJS) -Wl,--start-group $(LDLIBS) -Wl,--end-group
 
-trimat_2trimat_madd_gf256.elf: gf256/trimat-2trimat-madd/gf256trimat_2trimat_madd.c.o randombytes.c.o gf256/trimat-2trimat-madd/gf256trimat_2trimat_madd.S.o $(LDSCRIPT) $(LIBDEBS)
-	$(LD) $(LDFLAGS) -o $@ gf256/trimat-2trimat-madd/gf256trimat_2trimat_madd.c.o randombytes.c.o gf256/trimat-2trimat-madd/gf256trimat_2trimat_madd.S.o -Wl,--start-group $(LDLIBS) -Wl,--end-group
+GF16_TRIMAT2TRIMAT_MADD_DIR  := gf16/trimat-2trimat-madd/
+GF16_TRIMAT2TRIMAT_MADD_SRCS := $(wildcard $(GF16_TRIMAT2TRIMAT_MADD_DIR)/*.c $(GF16_TRIMAT2TRIMAT_MADD_DIR)/*.S)
+GF16_TRIMAT2TRIMAT_MADD_OBJS := $(addsuffix .o,$(GF16_TRIMAT2TRIMAT_MADD_SRCS))
+trimat_2trimat_madd_gf16.elf: randombytes.c.o $(GF16_TRIMAT2TRIMAT_MADD_OBJS) $(LDSCRIPT) $(LIBDEBS)
+	$(LD) $(LDFLAGS) -o $@ randombytes.c.o $(GF16_TRIMAT2TRIMAT_MADD_OBJS) -Wl,--start-group $(LDLIBS) -Wl,--end-group
+
+GF256_TRIMAT2TRIMAT_MADD_DIR  := gf256/trimat-2trimat-madd/
+GF256_TRIMAT2TRIMAT_MADD_SRCS := $(wildcard $(GF256_TRIMAT2TRIMAT_MADD_DIR)/*.c $(GF256_TRIMAT2TRIMAT_MADD_DIR)/*.S)
+GF256_TRIMAT2TRIMAT_MADD_OBJS := $(addsuffix .o,$(GF256_TRIMAT2TRIMAT_MADD_SRCS))
+trimat_2trimat_madd_gf256.elf: randombytes.c.o $(GF256_TRIMAT2TRIMAT_MADD_OBJS) $(LDSCRIPT) $(LIBDEBS)
+	$(LD) $(LDFLAGS) -o $@ randombytes.c.o $(GF256_TRIMAT2TRIMAT_MADD_OBJS) -Wl,--start-group $(LDLIBS) -Wl,--end-group
 
 UOV_PUBLICMAP_DIR  := gf16/uov-publicmap
 UOV_PUBLICMAP_SRCS := $(wildcard $(UOV_PUBLICMAP_DIR)/*.c $(UOV_PUBLICMAP_DIR)/*.S)
