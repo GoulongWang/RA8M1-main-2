@@ -20,6 +20,7 @@
 #include "utils_hash.h"
 #include "utils_malloc.h"
 
+#include "randombytes.h" // I added
 
 #define MAX_ATTEMPT_VINEGAR  256
 

@@ -15,7 +15,6 @@ void randombytes(unsigned char *x, unsigned long long xlen) {
     OQS_randombytes(x, xlen);
 }
 
-
 #elif defined(_UTILS_SUPERCOP_)|| defined(_UTILS_PQM4_)
 
 // nothing to do.

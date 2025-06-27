@@ -112,8 +112,7 @@ UOV_IS_DIR := gf16/UOV-Is
 
 UOV_IS_SRCS := $(wildcard $(UOV_IS_DIR)/*.c)
 UOV_IS_OBJS := $(patsubst %.c,%.c.o,$(UOV_IS_SRCS))
-
-uov-Is.elf: $(UOV_IS_OBJS) randombytes.c.o $(LDSCRIPT) $(LIBDEBS)
+uov-Is.elf: $(UOV_IS_OBJS) $(LDSCRIPT) $(LIBDEBS)
 	$(LD) $(LDFLAGS) -o $@ $(UOV_IS_OBJS) -Wl,--start-group $(LDLIBS) -Wl,--end-group
 
 # Dependencies for macro file

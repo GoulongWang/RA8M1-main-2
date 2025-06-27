@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: Apache-2.0 or CC0-1.0
 #ifndef FIPS202_H
 #define FIPS202_H
 
@@ -7,48 +8,168 @@
 #define SHAKE128_RATE 168
 #define SHAKE256_RATE 136
 #define SHA3_256_RATE 136
+#define SHA3_384_RATE 104
 #define SHA3_512_RATE 72
 
-#define FIPS202_NAMESPACE(s) ov_fips202_ref_##s
 
+// Context for incremental API
 typedef struct {
-    uint64_t s[25];
-    unsigned int pos;
-} keccak_state;
+    uint64_t ctx[26];
+} shake128incctx;
 
-#define shake128_init FIPS202_NAMESPACE(shake128_init)
-void shake128_init(keccak_state *state);
-#define shake128_absorb FIPS202_NAMESPACE(shake128_absorb)
-void shake128_absorb(keccak_state *state, const uint8_t *in, size_t inlen);
-#define shake128_finalize FIPS202_NAMESPACE(shake128_finalize)
-void shake128_finalize(keccak_state *state);
-#define shake128_squeeze FIPS202_NAMESPACE(shake128_squeeze)
-void shake128_squeeze(uint8_t *out, size_t outlen, keccak_state *state);
-#define shake128_absorb_once FIPS202_NAMESPACE(shake128_absorb_once)
-void shake128_absorb_once(keccak_state *state, const uint8_t *in, size_t inlen);
-#define shake128_squeezeblocks FIPS202_NAMESPACE(shake128_squeezeblocks)
-void shake128_squeezeblocks(uint8_t *out, size_t nblocks, keccak_state *state);
+// Context for non-incremental API
+typedef struct {
+    uint64_t ctx[25];
+} shake128ctx;
 
-#define shake256_init FIPS202_NAMESPACE(shake256_init)
-void shake256_init(keccak_state *state);
-#define shake256_absorb FIPS202_NAMESPACE(shake256_absorb)
-void shake256_absorb(keccak_state *state, const uint8_t *in, size_t inlen);
-#define shake256_finalize FIPS202_NAMESPACE(shake256_finalize)
-void shake256_finalize(keccak_state *state);
-#define shake256_squeeze FIPS202_NAMESPACE(shake256_squeeze)
-void shake256_squeeze(uint8_t *out, size_t outlen, keccak_state *state);
-#define shake256_absorb_once FIPS202_NAMESPACE(shake256_absorb_once)
-void shake256_absorb_once(keccak_state *state, const uint8_t *in, size_t inlen);
-#define shake256_squeezeblocks FIPS202_NAMESPACE(shake256_squeezeblocks)
-void shake256_squeezeblocks(uint8_t *out, size_t nblocks,  keccak_state *state);
+// Context for incremental API
+typedef struct {
+    uint64_t ctx[26];
+} shake256incctx;
 
-#define shake128 FIPS202_NAMESPACE(shake128)
-void shake128(uint8_t *out, size_t outlen, const uint8_t *in, size_t inlen);
-#define shake256 FIPS202_NAMESPACE(shake256)
-void shake256(uint8_t *out, size_t outlen, const uint8_t *in, size_t inlen);
-#define sha3_256 FIPS202_NAMESPACE(sha3_256)
-void sha3_256(uint8_t h[32], const uint8_t *in, size_t inlen);
-#define sha3_512 FIPS202_NAMESPACE(sha3_512)
-void sha3_512(uint8_t h[64], const uint8_t *in, size_t inlen);
+// Context for non-incremental API
+typedef struct {
+    uint64_t ctx[25];
+} shake256ctx;
 
+// Context for incremental API
+typedef struct {
+    uint64_t ctx[26];
+} sha3_256incctx;
+
+// Context for incremental API
+typedef struct {
+    uint64_t ctx[26];
+} sha3_384incctx;
+
+// Context for incremental API
+typedef struct {
+    uint64_t ctx[26];
+} sha3_512incctx;
+
+/* Initialize the state and absorb the provided input.
+ *
+ * This function does not support being called multiple times
+ * with the same state.
+ */
+void shake128_absorb(shake128ctx *state, const uint8_t *input, size_t inlen);
+/* Squeeze output out of the sponge.
+ *
+ * Supports being called multiple times
+ */
+void shake128_squeezeblocks(uint8_t *output, size_t nblocks, shake128ctx *state);
+/* Free the state */
+void shake128_ctx_release(shake128ctx *state);
+/* Copy the state. */
+void shake128_ctx_clone(shake128ctx *dest, const shake128ctx *src);
+
+void cshake128_simple_absorb(shake128ctx *state, uint16_t cstm, const uint8_t *input, size_t inlen);
+void cshake128_simple_squeezeblocks(uint8_t *output, size_t nblocks, shake128ctx *state);
+void cshake128_simple(uint8_t *output, size_t outlen, uint16_t cstm, const uint8_t *input, size_t inlen);
+
+/* Initialize incremental hashing API */
+void shake128_inc_init(shake128incctx *state);
+/* Absorb more information into the XOF.
+ *
+ * Can be called multiple times.
+ */
+void shake128_inc_absorb(shake128incctx *state, const uint8_t *input, size_t inlen);
+/* Finalize the XOF for squeezing */
+void shake128_inc_finalize(shake128incctx *state);
+/* Squeeze output out of the sponge.
+ *
+ * Supports being called multiple times
+ */
+void shake128_inc_squeeze(uint8_t *output, size_t outlen, shake128incctx *state);
+/* Copy the context of the SHAKE128 XOF */
+void shake128_inc_ctx_clone(shake128incctx* dest, const shake128incctx *src);
+/* Free the context of the SHAKE128 XOF */
+void shake128_inc_ctx_release(shake128incctx *state);
+
+/* Initialize the state and absorb the provided input.
+ *
+ * This function does not support being called multiple times
+ * with the same state.
+ */
+void shake256_absorb(shake256ctx *state, const uint8_t *input, size_t inlen);
+/* Squeeze output out of the sponge.
+ *
+ * Supports being called multiple times
+ */
+void shake256_squeezeblocks(uint8_t *output, size_t nblocks, shake256ctx *state);
+/* Free the context held by this XOF */
+void shake256_ctx_release(shake256ctx *state);
+/* Copy the context held by this XOF */
+void shake256_ctx_clone(shake256ctx *dest, const shake256ctx *src);
+
+void cshake256_simple_absorb(shake256ctx *state, uint16_t cstm, const uint8_t *input, size_t inlen);
+void cshake256_simple_squeezeblocks(uint8_t *output, size_t nblocks, shake256ctx *state);
+void cshake256_simple(uint8_t *output, size_t outlen, uint16_t cstm, const uint8_t *input, size_t inlen);
+
+/* Initialize incremental hashing API */
+void shake256_inc_init(shake256incctx *state);
+void shake256_inc_absorb(shake256incctx *state, const uint8_t *input, size_t inlen);
+/* Prepares for squeeze phase */
+void shake256_inc_finalize(shake256incctx *state);
+
+
+
+/* Squeeze output out of the sponge.
+ *
+ * Supports being called multiple times
+ */
+void shake256_inc_squeeze(uint8_t *output, size_t outlen, shake256incctx *state);
+/* Copy the state */
+void shake256_inc_ctx_clone(shake256incctx* dest, const shake256incctx *src);
+/* Free the state */
+void shake256_inc_ctx_release(shake256incctx *state);
+
+/* One-stop SHAKE128 call */
+void shake128(uint8_t *output, size_t outlen,
+              const uint8_t *input, size_t inlen);
+
+/* One-stop SHAKE256 call */
+void shake256(uint8_t *output, size_t outlen,
+              const uint8_t *input, size_t inlen);
+
+/* Initialize the incremental hashing state */
+void sha3_256_inc_init(sha3_256incctx *state);
+/* Absorb blocks into SHA3 */
+void sha3_256_inc_absorb(sha3_256incctx *state, const uint8_t *input, size_t inlen);
+/* Obtain the output of the function and free `state` */
+void sha3_256_inc_finalize(uint8_t *output, sha3_256incctx *state);
+/* Copy the context */
+void sha3_256_inc_ctx_clone(sha3_256incctx *dest, const sha3_256incctx *src);
+/* Release the state, don't use if `_finalize` has been used */
+void sha3_256_inc_ctx_release(sha3_256incctx *state);
+
+void sha3_256(uint8_t *output, const uint8_t *input, size_t inlen);
+
+/* Initialize the incremental hashing state */
+void sha3_384_inc_init(sha3_384incctx *state);
+/* Absorb blocks into SHA3 */
+void sha3_384_inc_absorb(sha3_384incctx *state, const uint8_t *input, size_t inlen);
+/* Obtain the output of the function and free `state` */
+void sha3_384_inc_finalize(uint8_t *output, sha3_384incctx *state);
+/* Copy the context */
+void sha3_384_inc_ctx_clone(sha3_384incctx *dest, const sha3_384incctx *src);
+/* Release the state, don't use if `_finalize` has been used */
+void sha3_384_inc_ctx_release(sha3_384incctx *state);
+
+/* One-stop SHA3-384 shop */
+void sha3_384(uint8_t *output, const uint8_t *input, size_t inlen);
+
+/* Initialize the incremental hashing state */
+void sha3_512_inc_init(sha3_512incctx *state);
+/* Absorb blocks into SHA3 */
+void sha3_512_inc_absorb(sha3_512incctx *state, const uint8_t *input, size_t inlen);
+/* Obtain the output of the function and free `state` */
+void sha3_512_inc_finalize(uint8_t *output, sha3_512incctx *state);
+/* Copy the context */
+void sha3_512_inc_ctx_clone(sha3_512incctx *dest, const sha3_512incctx *src);
+/* Release the state, don't use if `_finalize` has been used */
+void sha3_512_inc_ctx_release(sha3_512incctx *state);
+
+/* One-stop SHA3-512 shop */
+void sha3_512(uint8_t *output, const uint8_t *input, size_t inlen);
 #endif
