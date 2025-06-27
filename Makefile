@@ -1,15 +1,4 @@
-# === 處理 openssl
-OPENSSL_DIR := $(shell brew --prefix openssl@3)
-# 把 include 目錄加到編譯期
-CFLAGS  += -I$(OPENSSL_DIR)/include
-
-# 把 lib 目錄加到連結期
-LDFLAGS += -L$(OPENSSL_DIR)/lib
-
-# 把需要的 libssl / libcrypto 加到連結清單
-LDLIBS  += -lssl -lcrypto
-# ===
-
+# O3: 效能優化
 CFLAGS += \
 	-O3 \
 	-Wall -Wextra -Wshadow \
@@ -62,17 +51,23 @@ run-uov-Is.elf: uov-Is.elf
 %.elf: %.c.o $(OBJS) $(LDSCRIPT) $(LIBDEBS)
 	$(LD) $(LDFLAGS) -o $@ $(OBJS) -Wl,--start-group $(LDLIBS) -Wl,--end-group
 
-# 新增 vec_scalar_gf16.elf 規則
-vec_scalar_gf16.elf: gf16/vector-scalar-multiplication/vec_scalar_mul_gf16_mve.c.o randombytes.c.o gf16/vector-scalar-multiplication/vec_scalar_mul_gf16_mve.S.o $(LDSCRIPT) $(LIBDEBS)
-	$(LD) $(LDFLAGS) -o $@ gf16/vector-scalar-multiplication/vec_scalar_mul_gf16_mve.c.o randombytes.c.o gf16/vector-scalar-multiplication/vec_scalar_mul_gf16_mve.S.o -Wl,--start-group $(LDLIBS) -Wl,--end-group
+GF16_VEC_SCALAR_DIR  := gf16/vector-scalar-multiplication/
+GF16_VEC_SCALAR_SRCS := $(wildcard $(GF16_VEC_SCALAR_DIR)/*.c $(GF16_VEC_SCALAR_DIR)/*.S)
+GF16_VEC_SCALAR_OBJS := $(addsuffix .o,$(GF16_VEC_SCALAR_SRCS))
+vec_scalar_gf16.elf: randombytes.c.o $(GF16_VEC_SCALAR_OBJS) $(LDSCRIPT) $(LIBDEBS)
+	$(LD) $(LDFLAGS) -o $@ randombytes.c.o $(GF16_VEC_SCALAR_OBJS) -Wl,--start-group $(LDLIBS) -Wl,--end-group
 
-# 新增 mat_vec_gf16.elf 的專屬規則
-mat_vec_gf16.elf: gf16/matrix-vector-multiplication/mve_matrix_mul_gf16_main.c.o randombytes.c.o gf16/matrix-vector-multiplication/mat_vec_mul_gf16_mve.S.o $(LDSCRIPT) $(LIBDEBS)
-	$(LD) $(LDFLAGS) -o $@ gf16/matrix-vector-multiplication/mve_matrix_mul_gf16_main.c.o randombytes.c.o gf16/matrix-vector-multiplication/mat_vec_mul_gf16_mve.S.o -Wl,--start-group $(LDLIBS) -Wl,--end-group
+GF16_MAT_VEC_DIR  := gf16/matrix-vector-multiplication/
+GF16_MAT_VEC_SRCS := $(wildcard $(GF16_MAT_VEC_DIR)/*.c $(GF16_MAT_VEC_DIR)/*.S)
+GF16_MAT_VEC_OBJS := $(addsuffix .o,$(GF16_MAT_VEC_SRCS))
+mat_vec_gf16.elf: randombytes.c.o $(GF16_MAT_VEC_OBJS) $(LDSCRIPT) $(LIBDEBS)
+	$(LD) $(LDFLAGS) -o $@ randombytes.c.o $(GF16_MAT_VEC_OBJS) -Wl,--start-group $(LDLIBS) -Wl,--end-group
 
-# 新增 mayo_mat.elf 規則
-mayo_mat.elf: gf16/MAYO-matrix-multiplication/mayo_gf16_mat_vec_mul_mve.c.o randombytes.c.o gf16/MAYO-matrix-multiplication/mul_add_mat_x_m_mat.S.o $(LDSCRIPT) $(LIBDEBS)
-	$(LD) $(LDFLAGS) -o $@ gf16/MAYO-matrix-multiplication/mayo_gf16_mat_vec_mul_mve.c.o randombytes.c.o gf16/MAYO-matrix-multiplication/mul_add_mat_x_m_mat.S.o -Wl,--start-group $(LDLIBS) -Wl,--end-group
+GF16_MAYO_MAT_DIR  := gf16/MAYO-matrix-multiplication/
+GF16_MAYO_MAT_SRCS := $(wildcard $(GF16_MAYO_MAT_DIR)/*.c $(GF16_MAYO_MAT_DIR)/*.S)
+GF16_MAYO_MAT_OBJS := $(addsuffix .o,$(GF16_MAYO_MAT_SRCS))
+mayo_mat.elf: randombytes.c.o $(GF16_MAYO_MAT_OBJS) $(LDSCRIPT) $(LIBDEBS)
+	$(LD) $(LDFLAGS) -o $@ randombytes.c.o $(GF16_MAYO_MAT_OBJS) -Wl,--start-group $(LDLIBS) -Wl,--end-group
 
 GF256_MAT_VEC_MUL_DIR  := gf256/matrix-vector-multiplication/
 GF256_MAT_VEC_MUL_SRCS := $(wildcard $(GF256_VEC_SCALAR_MUL_DIR)/*.c $(GF256_VEC_SCALAR_MUL_DIR)/*.S)
@@ -104,12 +99,7 @@ UOV_PUBLICMAP_OBJS := $(addsuffix .o,$(UOV_PUBLICMAP_SRCS))
 uov-publicmap.elf: $(UOV_PUBLICMAP_OBJS) randombytes.c.o $(LDSCRIPT) $(LIBDEBS)
 	$(LD) $(LDFLAGS) -o $@ $(UOV_PUBLICMAP_OBJS) randombytes.c.o -Wl,--start-group $(LDLIBS) -Wl,--end-group
 
-# uov-Is.elf: gf16/UOV-Is/sign_api-test.c.o gf16/UOV-Is/sign.c.o randombytes.c.o $(LDSCRIPT) $(LIBDEBS)
-# 	$(LD) $(LDFLAGS) -o $@ gf16/UOV-Is/sign_api-test.c.o randombytes.c.o gf16/UOV-Is/sign.c.o -Wl,--start-group $(LDLIBS) -Wl,--end-group
 UOV_IS_DIR := gf16/UOV-Is
-#UOV_IS_SRCS := sign_api-test.c sign.c utils_randombytes.c ov.c ov_keypair.c utils_randombytes.c utils_hash.c blas_matrix.c
-#UOV_IS_OBJS := $(addprefix $(UOV_IS_DIR)/,$(patsubst %.c,%.c.o,$(UOV_IS_SRCS)))
-
 UOV_IS_SRCS := $(wildcard $(UOV_IS_DIR)/*.c)
 UOV_IS_OBJS := $(patsubst %.c,%.c.o,$(UOV_IS_SRCS))
 uov-Is.elf: $(UOV_IS_OBJS) $(LDSCRIPT) $(LIBDEBS)
