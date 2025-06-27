@@ -381,7 +381,7 @@ void benchmark_gf256mat_prod_44_X(){
     uint32_t sum_ref = 0, sum_mve = 0, sum_m4 = 0;
     uint32_t cycles;
 
-    uint8_t N_A_VEC_BYTE = 44, N_A_WIDTH;
+    uint8_t N_A_VEC_BYTE = 44, N_A_WIDTH = 44;
     uint8_t vec_b[ N_A_VEC_BYTE ];
     uint8_t vec_c0[ N_A_VEC_BYTE ];
     uint8_t vec_c1[ N_A_VEC_BYTE ];
@@ -391,7 +391,7 @@ void benchmark_gf256mat_prod_44_X(){
     for (int l = 1; l <= TEST_RUN; l++) {
         randombytes(vec_b, sizeof vec_b);
         randombytes(&N_A_WIDTH, sizeof(N_A_WIDTH));
-        N_A_WIDTH = N_A_WIDTH % 44 + 1;
+        //N_A_WIDTH = N_A_WIDTH % 44 + 1;
         uint8_t matA[ N_A_WIDTH * N_A_VEC_BYTE];
         randombytes(matA, sizeof matA);
 

@@ -9,11 +9,31 @@
 #include "SSE300MPS3.h"
 #endif
 
+typedef struct{
+    uint32_t systick_cycles;
+    uint32_t pmu_cycles;
+    
+    uint32_t inst_all;
+    uint32_t inst_mve_all;
+    uint32_t inst_mve_lsu;
+    uint32_t inst_mve_int;
+    uint32_t inst_mve_mul;
+
+    uint32_t stall_all;
+    uint32_t stall_mve_all;
+    uint32_t stall_mve_resource;
+} pmu_stats;
+
 void Utils_Init(void);
 void PMU_Init(void);
 void delay_ms(uint32_t ms);
 int utils_putchar(char c);
 void utils_exit(int retcode);
+
+void PMU_Finalize();
+void PMU_Init_Status( pmu_stats *s );
+void PMU_Finalize_Status( pmu_stats *s );
+void PMU_Send_Status( char *s, pmu_stats const *stats );
 
 #ifdef RA8M1
 #define ITCM_FN __attribute__((section(".itcm_data")))
@@ -24,6 +44,31 @@ void utils_exit(int retcode);
 #endif
 
 #define ALIGNED(N) __attribute__((aligned(N)))
+
+#define bench_cycles(CALL, OUT_VAR)                                            \
+    do {                                                                       \
+        pmu_stats stats;                                                       \
+        PMU_Init_Status(&stats);                                               \
+        CALL;                                                                  \
+        PMU_Finalize_Status(&stats);                                           \
+        PMU_Send_Status(#CALL, &stats);                                        \
+        printf("stats.pmu_cycles: %" PRIu32 " cycles\n\n", stats.pmu_cycles);  \
+        OUT_VAR = stats.pmu_cycles;                                            \
+    } while (0)
+
+/* 
+// this is old one.
+#define bench_cycles(CALL, OUT_VAR)                                    \
+    do {                                                               \
+        __disable_irq();                                               \
+        ARM_PMU_CYCCNT_Reset();                                        \
+        ARM_PMU_CNTR_Enable(PMU_CNTENSET_CCNTR_ENABLE_Msk);            \
+        CALL;                                                          \
+        ARM_PMU_CNTR_Disable(PMU_CNTENCLR_CCNTR_ENABLE_Msk);           \
+        printf(#CALL ": cycles = %" PRIu32 "\n", ARM_PMU_Get_CCNTR()); \
+        OUT_VAR = ARM_PMU_Get_CCNTR();                                 \
+        __enable_irq();                                                \
+    } while (0) */
 
 #define bench(CALL)                                                    \
     do {                                                               \

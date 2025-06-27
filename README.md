@@ -5,7 +5,10 @@
 ### How to run
 1. In the terminal, set the ARM GCC toolchain path by entering: 
 ```export ARM_TOOLCHAIN_PATH="/opt/homebrew/opt/arm-none-eabi-gcc/bin"```
-2. ```cmake -DCMAKE_TOOLCHAIN_FILE=cmake/gcc.cmake -G Ninja -B build/Debug```
+2. ```
+cd ../..
+cmake -DCMAKE_TOOLCHAIN_FILE=cmake/gcc.cmake -G Ninja -B build/Debug
+```
 3. In the terminal, execute the following commands:
 ```
 cd build/Debug
