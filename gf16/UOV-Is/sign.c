@@ -12,6 +12,8 @@
 
 #include "api.h"
 
+#include "randombytes.h" // I included my implementation
+
 #include "utils_prng.h"
 
 #if defined(_UTILS_SUPERCOP_)
