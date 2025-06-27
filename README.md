@@ -12,6 +12,7 @@ cd build/Debug
 ninja
 printf "Sleep 2000\nLoadFile bench_ra8m1.elf\ngo\nSleep 3600000" | JLinkExe -if SWD -device R7FA8M1AH -speed auto
 ```
+
 4. Open a new terminal and run:
 ```telnet 127.0.0.1 19021```
 
