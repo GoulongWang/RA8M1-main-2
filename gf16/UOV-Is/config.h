@@ -41,10 +41,10 @@
 //
 #if !(defined(_UTILS_OPENSSL_)||defined(_UTILS_SUPERCOP_)||defined(_UTILS_PQM4_)||defined(_UTILS_OQS_))
 // default:
-#define _UTILS_OPENSSL_
+//#define _UTILS_OPENSSL_
 
 //#define _UTILS_SUPERCOP_
-//#define _UTILS_PQM4_
+#define _UTILS_PQM4_
 #endif  // !(defined(_UTILS_OPENSSL_)||defined(_UTILS_SUPERCOP_)||defined(_UTILS_PQM4_))
 
 //

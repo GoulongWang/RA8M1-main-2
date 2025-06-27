@@ -8,7 +8,7 @@
 
 
 #if defined(_UTILS_OPENSSL_)||defined(_UTILS_SUPERCOP_)
-
+ 
 #include <openssl/evp.h>
 
 
@@ -46,7 +46,6 @@ int hash_final_digest( unsigned char *out, size_t outlen, hash_ctx *ctx ) {
     EVP_MD_CTX_destroy(ctx->x);
     return (ok) ? 0 : -1;
 }
-
 #elif defined(_UTILS_PQM4_)
 
 int hash_init( hash_ctx *ctx ) {
@@ -190,4 +189,3 @@ int hash_final_digest( unsigned char *out, size_t outlen, hash_ctx *ctx ) {
 }
 
 #endif
-

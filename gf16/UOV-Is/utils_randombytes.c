@@ -4,9 +4,11 @@
 ///
 
 #include "utils_randombytes.h"
-
+#include <stdint.h>
+#include <string.h>
 
 #if defined (_UTILS_OQS_)
+
 #include <oqs/rand.h>
 
 void randombytes(unsigned char *x, unsigned long long xlen) {
@@ -43,7 +45,5 @@ void randombytes(unsigned char *x, unsigned long long xlen) {
 
 #else
 
-ERROR -- no implementation for randombytes()
-
+//ERROR -- no implementation for randombytes()
 #endif
-

@@ -114,7 +114,7 @@ UOV_IS_SRCS := $(wildcard $(UOV_IS_DIR)/*.c)
 UOV_IS_OBJS := $(patsubst %.c,%.c.o,$(UOV_IS_SRCS))
 
 uov-Is.elf: $(UOV_IS_OBJS) randombytes.c.o $(LDSCRIPT) $(LIBDEBS)
-	$(LD) $(LDFLAGS) -o $@ $(UOV_IS_OBJS) randombytes.c.o -Wl,--start-group $(LDLIBS) -Wl,--end-group
+	$(LD) $(LDFLAGS) -o $@ $(UOV_IS_OBJS) -Wl,--start-group $(LDLIBS) -Wl,--end-group
 
 # Dependencies for macro file
 vec_scalar_mul_gf16_mve.S.o:  vec_scalar_mul_gf16_mve.i
