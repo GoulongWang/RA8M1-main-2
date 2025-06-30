@@ -27,6 +27,7 @@ ITCM_FN int main(void) {
     unsigned char *sk = (unsigned char *)malloc( CRYPTO_SECRETKEYBYTES );
     uint64_t cycles;
     int ret = 0;
+    crypto_sign_keypair( pk, sk);
     //bench_cycles(crypto_sign_keypair( pk, sk), cycles); // print nothing
 /* 
     printf("===========  test crypto_sign_keypair(), crypto_sign(), and crypto_sign_open()  ================\n\n");
