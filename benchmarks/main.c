@@ -50,11 +50,11 @@ void benchmark_ov_publicmap();
 ITCM_FN int main(void) {
     Utils_Init();
     PMU_Init();
-    benchmark_ov_publicmap();
+    //benchmark_ov_publicmap();
     benchmark_gf16mat_prod_2048_96();
-    benchmark_gf16mat_prod_48_64();
-    benchmark_gf16mat_prod_32_X();
-    benchmark_gf16trimat_2trimat_madd_96_48_64_32();
+    //benchmark_gf16mat_prod_48_64();
+    //benchmark_gf16mat_prod_32_X();
+    //benchmark_gf16trimat_2trimat_madd_96_48_64_32();
     return 0;
 }
 
