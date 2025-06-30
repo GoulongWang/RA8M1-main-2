@@ -5,7 +5,7 @@
 #define MUSH(i, b) x = t[i] += (((x ^ seed[i]) + sum) ^ ROTATE(x, b));
 
 static uint32_t seed[32] = {9, 7, 0, 1, 7, 6, 2, 9, 5, 3, 5, 9, 9, 7, 4, 3,
-                            0, 4, 0, 6, 6, 9, 5, 4, 7, 3, 8, 3, 2, 7, 9, 5};
+                            1, 5, 0, 6, 6, 8, 5, 4, 7, 3, 8, 3, 2, 7, 9, 5};
 static uint32_t in[12];
 static uint8_t out_buf[sizeof(uint32_t) * 16];
 static int32_t outleft = 0;
