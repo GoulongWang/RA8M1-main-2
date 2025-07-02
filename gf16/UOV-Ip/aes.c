@@ -30,19 +30,23 @@
 #include <string.h>
 
 #include "aes.h"
+#include "aes128_4r_ffs.h"
 
 #ifdef PROFILE_HASHING
 #include "hal.h"
 extern unsigned long long hash_cycles;
 #endif
 
-extern void aes128_keyexp_asm(const uint8_t *key, uint8_t *rk);
+#define aes128_keyexp_asm aes128_keyexp_publicinputs_asm
+
+#define aes128_encrypt_asm 
+extern void aes128_keyexp_publicinputs_asm(const uint8_t *key,uint8_t *rk);
+//extern void aes128_keyexp_asm(const uint8_t *key, uint8_t *rk);
 extern void aes192_keyexp_asm(const uint8_t *key, uint8_t *rk);
 extern void aes256_keyexp_asm(const uint8_t *key, uint8_t *rk);
-extern void aes128_encrypt_asm(const uint8_t *rk, const uint8_t *in, uint8_t *out);
+//extern void aes128_encrypt_asm(const uint8_t *rk, const uint8_t *in, uint8_t *out);
 extern void aes192_encrypt_asm(const uint8_t *rk, const uint8_t *in, uint8_t *out);
 extern void aes256_encrypt_asm(const uint8_t *rk, const uint8_t *in, uint8_t *out);
-
 
 static inline uint32_t br_swap32(uint32_t x) {
     x = ((x & (uint32_t)0x00FF00FF) << 8)
@@ -66,7 +70,6 @@ static void aes_ecb(unsigned char *out, const unsigned char *in, size_t nblocks,
     }
 }
 
-
 static void aes_ctr(unsigned char *out, size_t outlen, const unsigned char *iv, const uint64_t *rkeys, void (*aes_encrypt_asm)(const uint8_t *, const uint8_t *, uint8_t *)) {
     uint32_t ivw[4] = {0};
     uint8_t buf[AES_BLOCKBYTES];
@@ -87,8 +90,7 @@ static void aes_ctr(unsigned char *out, size_t outlen, const unsigned char *iv, 
         }
     }
 }
-
-
+ 
 static void aes128_keyexp(aes128ctx *r, const unsigned char *key) {
 #ifdef PROFILE_HASHING
     uint64_t t0 = hal_get_time();
@@ -157,7 +159,7 @@ void aes256_ctr_keyexp(aes256ctx *r, const unsigned char *key) {
     aes256_keyexp(r, key);
 }
 
-
+/* 
 void aes128_ecb(unsigned char *out, const unsigned char *in, size_t nblocks, const aes128ctx *ctx) {
 #ifdef PROFILE_HASHING
     uint64_t t0 = hal_get_time();
@@ -169,9 +171,33 @@ void aes128_ecb(unsigned char *out, const unsigned char *in, size_t nblocks, con
     uint64_t t1 = hal_get_time();
     hash_cycles += (t1-t0);
 #endif
+} */
+
+void aes128_ecb(unsigned char *out, const unsigned char *in, size_t nblocks, const aes128ctx *ctx){
+    #ifdef PROFILE_HASHING
+    uint64_t t0 = hal_get_time();   
+    #endif
+    uint8_t buf0[AES_BLOCKBYTES], buf1[AES_BLOCKBYTES];
+
+    while(nblocks > 0){
+        if(nblocks >= 2){
+            aes128_encrypt_ffs(out, out+AES_BLOCKBYTES, in, in+AES_BLOCKBYTES, (uint32_t*) ctx->sk_exp);
+            out += AES_BLOCKBYTES*2;
+            in += AES_BLOCKBYTES*2;
+            nblocks -= 2;
+        } else {
+            aes128_encrypt_ffs(out, buf0, in, buf1, (uint32_t*) ctx->sk_exp);
+            nblocks--;
+        }
+    }
+
+    #ifdef PROFILE_HASHING
+    uint64_t t1 = hal_get_time();
+    hash_cycles += (t1-t0);
+    #endif
 }
 
-void aes128_ctr(unsigned char *out, size_t outlen, const unsigned char *iv, const aes128ctx *ctx) {
+/* void aes128_ctr(unsigned char *out, size_t outlen, const unsigned char *iv, uint32_t ctr, const aes128ctx *ctx) {
 #ifdef PROFILE_HASHING
     uint64_t t0 = hal_get_time();
 #endif
@@ -182,6 +208,54 @@ void aes128_ctr(unsigned char *out, size_t outlen, const unsigned char *iv, cons
     uint64_t t1 = hal_get_time();
     hash_cycles += (t1-t0);
 #endif
+} */
+
+// copied from https://github.com/mupq/pqm4/blob/a24bb4b662016968c19f5e6a0719c9ad530f0286/common/aes.c#L89C1-L131C2
+
+static inline void inc2_be(uint32_t *x) {
+    uint32_t t = br_swap32(*x) + 2;
+    *x = br_swap32(t);
+}
+
+void aes128_ctr(unsigned char *out, size_t outlen, const unsigned char *iv, uint32_t ctr, const aes128ctx *ctx){
+    #ifdef PROFILE_HASHING
+    uint64_t t0 = hal_get_time();
+    #endif
+    uint32_t ivw1[4] = {0};
+    uint32_t ivw2[4] = {0};
+    uint8_t buf1[AES_BLOCKBYTES];
+    uint8_t buf2[AES_BLOCKBYTES];
+    size_t i;
+
+    memcpy(ivw1, iv, AESCTR_NONCEBYTES);
+    memcpy(ivw2, iv, AESCTR_NONCEBYTES);
+    inc1_be(ivw2 + 3);
+
+    while (outlen > 2*AES_BLOCKBYTES) {
+        aes128_encrypt_ffs(out, out+16, (uint8_t *)ivw1, (uint8_t *)ivw2, (uint32_t*)ctx->sk_exp);
+        inc2_be(ivw1 + 3);
+        inc2_be(ivw2 + 3);
+        out += AES_BLOCKBYTES*2;
+        outlen -= AES_BLOCKBYTES*2;
+    }
+    if (outlen >= AES_BLOCKBYTES) {
+        aes128_encrypt_ffs(out, buf2, (uint8_t *)ivw1, (uint8_t *)ivw2, (uint32_t*)ctx->sk_exp);
+        out += AES_BLOCKBYTES;
+        outlen -= AES_BLOCKBYTES;
+        for (i = 0; i < outlen; i++) {
+            out[i] = buf2[i];
+        }
+        } else if (outlen > 0) {
+            aes128_encrypt_ffs(buf1, buf2, (uint8_t *)ivw1, (uint8_t *)ivw2, (uint32_t*)ctx->sk_exp);
+            for (i = 0; i < outlen; i++) {
+                out[i] = buf1[i];
+            }
+        }
+
+    #ifdef PROFILE_HASHING
+    uint64_t t1 = hal_get_time();
+    hash_cycles += (t1-t0);
+    #endif
 }
 
 void aes192_ecb(unsigned char *out, const unsigned char *in, size_t nblocks, const aes192ctx *ctx) {

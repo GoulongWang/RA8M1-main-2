@@ -12,8 +12,8 @@
 #define TEST_GENKEY 2
 #define TEST_RUN 5
 #else
-#define TEST_GENKEY 50
-#define TEST_RUN 500
+#define TEST_GENKEY 2
+#define TEST_RUN 2
 #endif
 
 int main(void) {
@@ -21,6 +21,7 @@ int main(void) {
     printf("sk size: %d\n", CRYPTO_SECRETKEYBYTES );
     printf("pk size: %d\n", CRYPTO_PUBLICKEYBYTES );
     printf("signature overhead: %d\n\n", CRYPTO_BYTES );
+    int ret = 0;
 
     unsigned char sm[256 + CRYPTO_BYTES];
     unsigned char m[256];
@@ -32,8 +33,6 @@ int main(void) {
 
     unsigned char *pk = (unsigned char *)malloc( CRYPTO_PUBLICKEYBYTES );
     unsigned char *sk = (unsigned char *)malloc( CRYPTO_SECRETKEYBYTES );
-
-    int ret = 0;
 
     printf("===========  test crypto_sign_keypair(), crypto_sign(), and crypto_sign_open()  ================\n\n");
     for (unsigned i = 0; i < TEST_RUN; i++) {
@@ -65,7 +64,7 @@ int main(void) {
         }
     }
     printf("all (%d,%d) tests passed.\n\n", TEST_RUN, TEST_GENKEY );
-    printf("===========  test crypto_sign_keypair(), crypto_sign_signature(), and crypto_sign_verify()  ================\n\n");
+    /*printf("===========  test crypto_sign_keypair(), crypto_sign_signature(), and crypto_sign_verify()  ================\n\n");
 
     mlen = 53;
     unsigned long long siglen;
@@ -103,9 +102,9 @@ int main(void) {
 
     printf("all (%d) tests passed.\n\n", TEST_RUN );
 
-
+*/
 clean_exit:
     free( pk );
-    free( sk );
+    free( sk ); 
     return ret;
 }

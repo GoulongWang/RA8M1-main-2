@@ -46,13 +46,19 @@ printf "Sleep 2000\nLoadFile bench_ra8m1.elf\ngo\nSleep 3600000" | JLinkExe -if 
 | UOV-Ip: gf256mat_prod 44_X    | 10511   |   31539 |            11261 |
 | UOV-Ip: gf256trimat_2trimat_madd 68_68_44_44 | 96,998,349 | 187,126,589 | 104,198,645 |
 
-| Function | cycles in C |
+| UOV-Ip | cycles in C |
 |----------|-------------|
 | crypto_sign_keypair | 581,317,233 |
 | crypto_sign | 10,233,294 |
 | crypto_sign_open | 2,872,759 |
 | crypto_sign_signature | 10,082,435 |
 | crypto_sign_verify | 2,666,743 |
+
+| UOV-Is | cycles in C |
+|----------|-------------|
+| crypto_sign_keypair |  |
+| crypto_sign |  |
+| crypto_sign_open |  |
 
 ## Unit Test
 ### GF16 Vector-scalar Multiplication
