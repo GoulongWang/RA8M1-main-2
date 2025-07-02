@@ -300,8 +300,6 @@ int prng_gen_publicinputs(prng_publicinputs_t *ctx, unsigned char *out, unsigned
         out += ready;
     }
 
-    printf("In prng_gen_publicinputs\n");
-
     if (xlen >= RNG_OUTPUTLEN) {
         uint32_t nblocks = xlen / RNG_OUTPUTLEN;
         aes128ctr_publicinputs(out, nblocks, nonce, ctx->ctr, ctx);

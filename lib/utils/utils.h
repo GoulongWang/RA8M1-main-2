@@ -56,19 +56,18 @@ void PMU_Send_Status( char *s, pmu_stats const *stats );
         OUT_VAR = stats.pmu_cycles;                                            \
     } while (0)
 
-/* 
 // this is old one.
-#define bench_cycles(CALL, OUT_VAR)                                    \
+#define bench_cycles2(CALL, OUT_VAR, RET_VAR)                          \
     do {                                                               \
         __disable_irq();                                               \
         ARM_PMU_CYCCNT_Reset();                                        \
         ARM_PMU_CNTR_Enable(PMU_CNTENSET_CCNTR_ENABLE_Msk);            \
-        CALL;                                                          \
+        RET_VAR = CALL;                                                          \
         ARM_PMU_CNTR_Disable(PMU_CNTENCLR_CCNTR_ENABLE_Msk);           \
         printf(#CALL ": cycles = %" PRIu32 "\n", ARM_PMU_Get_CCNTR()); \
         OUT_VAR = ARM_PMU_Get_CCNTR();                                 \
         __enable_irq();                                                \
-    } while (0) */
+    } while (0)
 
 #define bench(CALL)                                                    \
     do {                                                               \

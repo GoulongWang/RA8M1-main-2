@@ -49,10 +49,8 @@ int generate_keypair( pk_t *rpk, sk_t *sk, const unsigned char *sk_seed ) {
     // prng for pk
     prng_publicinputs_t prng1;
     prng_set_publicinputs(&prng1, pk_seed );
-    printf("return from prng_set_publicinputs\n");
     // P1 and P2
-    prng_gen_publicinputs(&prng1, rpk->pk, sizeof(sk->P1) + sizeof(sk->S) ); // get stock
-    printf("return from prng_set_publicinputs p1 and p2\n");
+    prng_gen_publicinputs(&prng1, rpk->pk, sizeof(sk->P1) + sizeof(sk->S) );
     memcpy( sk->P1, rpk->pk, sizeof(sk->P1) );
     prng_release_publicinputs(&prng1);
     // S and P3
@@ -61,7 +59,6 @@ int generate_keypair( pk_t *rpk, sk_t *sk, const unsigned char *sk_seed ) {
     calculate_F2_P3( sk->S, rpk_P3, sk->P1, rpk_P2, sk->O );
     return 0;
 }
-
 
 int expand_pk( pk_t *rpk, const cpk_t *cpk ) {
     prng_publicinputs_t prng0;

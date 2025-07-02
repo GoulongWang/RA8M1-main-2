@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: CC0 OR Apache-2.0
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -22,23 +21,21 @@ ITCM_FN int main(void) {
     }
     unsigned long long mlen = 256;
     unsigned long long smlen;
-
-    unsigned char *pk = (unsigned char *)malloc( CRYPTO_PUBLICKEYBYTES );
-    unsigned char *sk = (unsigned char *)malloc( CRYPTO_SECRETKEYBYTES );
+    unsigned char pk[CRYPTO_PUBLICKEYBYTES];
+    unsigned char sk[CRYPTO_SECRETKEYBYTES]; // 在 M85 可能不支援 malloc，所以不要用
     uint64_t cycles;
     int ret = 0;
-    crypto_sign_keypair( pk, sk);
-    //bench_cycles(crypto_sign_keypair( pk, sk), cycles); // print nothing
-/* 
+
     printf("===========  test crypto_sign_keypair(), crypto_sign(), and crypto_sign_open()  ================\n\n");
     for (unsigned i = 0; i < TEST_RUN; i++) {
+        // 為什麼 GENKEY 只要測試 50 次？
         if ( i < TEST_GENKEY ) {
             int r0;
-            r0 = bench_cycles(crypto_sign_keypair( pk, sk), cycles);
+            bench_cycles2(crypto_sign_keypair( pk, sk), cycles, r0);
             if ( 0 != r0 ) {
                 printf("generating key return %d.\n", r0);
                 ret = -1;
-                goto clean_exit;
+                break;
             }
         }
 
@@ -46,32 +43,32 @@ ITCM_FN int main(void) {
             m[j] = (i * j) & 0xff;
         }
         int r1, r2;
-        r1 = bench_cycles(crypto_sign( sm, &smlen, m, mlen, sk ), cycles);
+        bench_cycles2(crypto_sign( sm, &smlen, m, mlen, sk ), cycles, r1);
         if ( 0 != r1 ) {
             printf("crypto_sign() return %d.\n", r1);
             ret = -1;
-            goto clean_exit;
+            break;
         }
-        r2 = bench_cycles(crypto_sign_open( m, &mlen, sm, smlen, pk ), cycles);
+        bench_cycles2(crypto_sign_open( m, &mlen, sm, smlen, pk ), cycles, r2);
         if ( 0 != r2 ) {
             printf("crypto_sign_open() return %d.\n", r2);
             ret = -1;
-            goto clean_exit;
+            break;
         }
     }
-    printf("all (%d,%d) tests passed.\n\n", TEST_RUN, TEST_GENKEY );
-    printf("===========  test crypto_sign_keypair(), crypto_sign_signature(), and crypto_sign_verify()  ================\n\n");
 
+    printf("all (%d,%d) tests passed.\n\n", TEST_RUN, TEST_GENKEY );
+     
+    printf("===========  test crypto_sign_keypair(), crypto_sign_signature(), and crypto_sign_verify()  ================\n\n");
     mlen = 53;
     unsigned long long siglen;
     unsigned char sig[CRYPTO_BYTES];
     for (unsigned i = 0; i < TEST_RUN; i++) {
         int rc;
-        rc = crypto_sign_keypair( pk, sk);
+        bench_cycles2(crypto_sign_keypair( pk, sk), cycles, rc);
         if ( 0 != rc ) {
             printf("generating key returned %d.\n", rc);
             ret = -1;
-            goto clean_exit;
         }
 
 
@@ -79,29 +76,21 @@ ITCM_FN int main(void) {
             m[j] = (i * j) & 0xff;
         }
 
-        rc = crypto_sign_signature( sig, &siglen, m, mlen, sk );
+        bench_cycles2(crypto_sign_signature( sig, &siglen, m, mlen, sk ), cycles, rc);
 
         if ( 0 != rc ) {
             printf("crypto_sign_signature() returned %d.\n", rc);
             ret = -1;
-            goto clean_exit;
         }
 
-        rc = crypto_sign_verify( sig, siglen,  m, mlen, pk );
+        bench_cycles2(crypto_sign_verify( sig, siglen,  m, mlen, pk ), cycles, rc);
         if ( 0 != rc ) {
             printf("crypto_sign_verify() return %d.\n", rc);
             ret = -1;
-            goto clean_exit;
         }
 
     }
 
     printf("all (%d) tests passed.\n\n", TEST_RUN );
-
- */
-clean_exit:
-    free( pk );
-    free( sk );
-    printf("nice3\n");
     return ret;
 }
