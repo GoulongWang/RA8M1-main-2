@@ -12,8 +12,8 @@
 #define TEST_GENKEY 2
 #define TEST_RUN 5
 #else
-#define TEST_GENKEY 2
-#define TEST_RUN 2
+#define TEST_GENKEY 10
+#define TEST_RUN 100
 #endif
 
 int main(void) {
@@ -64,7 +64,7 @@ int main(void) {
         }
     }
     printf("all (%d,%d) tests passed.\n\n", TEST_RUN, TEST_GENKEY );
-    /*printf("===========  test crypto_sign_keypair(), crypto_sign_signature(), and crypto_sign_verify()  ================\n\n");
+    printf("===========  test crypto_sign_keypair(), crypto_sign_signature(), and crypto_sign_verify()  ================\n\n");
 
     mlen = 53;
     unsigned long long siglen;
@@ -102,7 +102,6 @@ int main(void) {
 
     printf("all (%d) tests passed.\n\n", TEST_RUN );
 
-*/
 clean_exit:
     free( pk );
     free( sk ); 
