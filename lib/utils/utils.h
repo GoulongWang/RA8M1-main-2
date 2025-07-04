@@ -52,7 +52,7 @@ void PMU_Send_Status( char *s, pmu_stats const *stats );
         CALL;                                                                  \
         PMU_Finalize_Status(&stats);                                           \
         PMU_Send_Status(#CALL, &stats);                                        \
-/*        printf("stats.pmu_cycles: %" PRIu32 " cycles\n\n", stats.pmu_cycles); */ \
+        printf("stats.pmu_cycles: %" PRIu32 " cycles\n\n", stats.pmu_cycles);  \
         OUT_VAR = stats.pmu_cycles;                                            \
     } while (0)
 

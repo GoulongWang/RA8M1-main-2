@@ -383,31 +383,58 @@ void benchmark_gf16mat_prod_2048_96(){
     printf("Average M4  cycles = %lu\n", sum_m4 / TEST_RUN);
 }
 
+static uint8_t matA2[48 * 64];
+static uint8_t vec_B[48 ];
+static uint8_t vec_C0[ 48 ];
+static uint8_t vec_C1[ 48 ];
+static uint8_t vec_C2[ 48 ];
+void custom_delay_ms(uint32_t ms) {
+       // Approximate delay based on CPU cycles
+       // Assuming ~200MHz CPU, this gives roughly 1ms per 200,000 cycles
+       volatile uint32_t cycles_per_ms = 200000;
+       volatile uint32_t total_cycles = ms * cycles_per_ms;
+       
+       for (volatile uint32_t i = 0; i < total_cycles; i++) {
+           // Simple busy wait - compiler won't optimize this away due to volatile
+           __asm volatile ("nop");
+      }
+}    
 void benchmark_gf16mat_prod_48_64(){
     printf("\n\n=== UOV-Is: gf16mat_prod 48_64 Unit Test ===\n");
     uint32_t sum_ref = 0, sum_mve = 0, sum_m4 = 0;
     uint32_t cycles = 0;
     uint8_t N_A_VEC_BYTE = 48, N_A_WIDTH = 64;
-    uint8_t matA2[ N_A_VEC_BYTE * N_A_WIDTH];
-    uint8_t vec_B[N_A_VEC_BYTE ];
-    uint8_t vec_C0[ N_A_VEC_BYTE ];
-    uint8_t vec_C1[ N_A_VEC_BYTE ];
-    uint8_t vec_C2[ N_A_VEC_BYTE ];
+    // static uint8_t matA2[ N_A_VEC_BYTE * N_A_WIDTH];
+    // static uint8_t vec_B[N_A_VEC_BYTE ];
+    // static uint8_t vec_C0[ N_A_VEC_BYTE ];
+    // static uint8_t vec_C1[ N_A_VEC_BYTE ];
+    // static uint8_t vec_C2[ N_A_VEC_BYTE ];
+    
     
     int fail = 0;
-    for (int l = 1; l <= TEST_RUN; l++) {
+    for (int l = 1; l <= 20; l++) {
+        printf("l = %d\n", l);
         randombytes(matA2, sizeof matA2);
         randombytes(vec_B, sizeof vec_B);
         memset(vec_C0, 0, sizeof(vec_C0));
         memset(vec_C1, 0, sizeof(vec_C1));
         memset(vec_C2, 0, sizeof(vec_C2));
         
-        bench_cycles(gf16mat_prod_ref( vec_C0, matA2, N_A_VEC_BYTE, N_A_WIDTH, vec_B ), cycles);
-        sum_ref += cycles;
-        bench_cycles(gf16mat_prod_48_64( vec_C1, matA2, vec_B ), cycles);    
-        sum_mve += cycles;
-        bench_cycles(gf16mat_prod_m4f_48_64_normal_normal((uint32_t*) vec_C2, (uint32_t*) matA2, vec_B ), cycles);    
-        sum_m4 += cycles;
+        if (l % 5  == 0) {
+            bench_cycles(gf16mat_prod_ref( vec_C0, matA2, N_A_VEC_BYTE, N_A_WIDTH, vec_B ), cycles);
+            sum_ref += cycles;
+            bench_cycles(gf16mat_prod_48_64( vec_C1, matA2, vec_B ), cycles);    
+            sum_mve += cycles;
+            bench_cycles(gf16mat_prod_m4f_48_64_normal_normal((uint32_t*) vec_C2, (uint32_t*) matA2, vec_B ), cycles);    
+            sum_m4 += cycles;
+        }else {
+            bench_cycles3(gf16mat_prod_ref( vec_C0, matA2, N_A_VEC_BYTE, N_A_WIDTH, vec_B ), cycles);
+            sum_ref += cycles;
+            bench_cycles3(gf16mat_prod_48_64( vec_C1, matA2, vec_B ), cycles);    
+            sum_mve += cycles;
+            bench_cycles3(gf16mat_prod_m4f_48_64_normal_normal((uint32_t*) vec_C2, (uint32_t*) matA2, vec_B ), cycles);    
+            sum_m4 += cycles;
+        }
         
         if (memcmp(vec_C0, vec_C1, N_A_VEC_BYTE)) {
             fail = 1;
