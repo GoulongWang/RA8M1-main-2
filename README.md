@@ -85,7 +85,7 @@ make run-trimat-2trimat-madd-gf16.elf
 make run-uov-publicmap.elf
 ```
 
-### UOV-Is (Working-On)
+### UOV-Is
 ```
 make run-uov-Is.elf
 ```
