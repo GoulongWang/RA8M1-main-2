@@ -27,9 +27,9 @@ ITCM_FN int main(void) {
     uint8_t sk[CRYPTO_SECRETKEYBYTES]; // 在 M85 可能不支援 malloc，所以不要用
     int fail = 0;
     int r0;
-    crypto_sign_keypair( pk, sk);
+    //crypto_sign_keypair( pk, sk);
 
-/* 
+
     printf("===========  test crypto_sign_keypair(), crypto_sign(), and crypto_sign_open()  ================\n\n");
     for (unsigned i = 0; i < TEST_RUN; i++) {
         if ( i < TEST_GENKEY ) {
@@ -61,7 +61,7 @@ ITCM_FN int main(void) {
             break;
         }
     }
- */
+ 
     if (fail) {
         printf("Tests failed.\n");
     } 
