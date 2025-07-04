@@ -29,6 +29,7 @@ int
 crypto_sign_keypair(unsigned char *pk, unsigned char *sk) {
     unsigned char sk_seed[LEN_SKSEED];
     randombytes( sk_seed, LEN_SKSEED );
+    
 
     #if defined(_VALGRIND_)
     VALGRIND_MAKE_MEM_UNDEFINED(sk_seed, LEN_SKSEED );  // mark secret data as undefined data

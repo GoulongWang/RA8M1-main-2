@@ -52,17 +52,28 @@ void PMU_Send_Status( char *s, pmu_stats const *stats );
         CALL;                                                                  \
         PMU_Finalize_Status(&stats);                                           \
         PMU_Send_Status(#CALL, &stats);                                        \
-        printf("stats.pmu_cycles: %" PRIu32 " cycles\n\n", stats.pmu_cycles);  \
+/*        printf("stats.pmu_cycles: %" PRIu32 " cycles\n\n", stats.pmu_cycles); */ \
         OUT_VAR = stats.pmu_cycles;                                            \
     } while (0)
 
-// this is old one.
 #define bench_cycles2(CALL, OUT_VAR, RET_VAR)                          \
     do {                                                               \
         __disable_irq();                                               \
         ARM_PMU_CYCCNT_Reset();                                        \
         ARM_PMU_CNTR_Enable(PMU_CNTENSET_CCNTR_ENABLE_Msk);            \
-        RET_VAR = CALL;                                                          \
+        RET_VAR = CALL;                                                \
+        ARM_PMU_CNTR_Disable(PMU_CNTENCLR_CCNTR_ENABLE_Msk);           \
+        printf(#CALL ": cycles = %" PRIu32 "\n", ARM_PMU_Get_CCNTR()); \
+        OUT_VAR = ARM_PMU_Get_CCNTR();                                 \
+        __enable_irq();                                                \
+    } while (0)
+
+#define bench_cycles3(CALL, OUT_VAR)                                   \
+    do {                                                               \
+        __disable_irq();                                               \
+        ARM_PMU_CYCCNT_Reset();                                        \
+        ARM_PMU_CNTR_Enable(PMU_CNTENSET_CCNTR_ENABLE_Msk);            \
+        CALL;                                                          \
         ARM_PMU_CNTR_Disable(PMU_CNTENCLR_CCNTR_ENABLE_Msk);           \
         printf(#CALL ": cycles = %" PRIu32 "\n", ARM_PMU_Get_CCNTR()); \
         OUT_VAR = ARM_PMU_Get_CCNTR();                                 \
