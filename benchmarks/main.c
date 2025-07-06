@@ -53,7 +53,7 @@ ITCM_FN int main(void) {
     //benchmark_ov_publicmap();
     //benchmark_gf16mat_prod_2048_96();
     benchmark_gf16mat_prod_48_64();
-    //benchmark_gf16mat_prod_32_X();
+    benchmark_gf16mat_prod_32_X();
     //benchmark_gf16trimat_2trimat_madd_96_48_64_32();
     return 0;
 }
@@ -395,15 +395,16 @@ void benchmark_gf16mat_prod_48_64(){
     uint8_t vec_C2[ N_A_VEC_BYTE ]; 
     
     int fail = 0;
-    for (int l = 1; l <= 20; l++) {
-        printf("l = %d\n", l);
+    for (int l = 1; l <= TEST_RUN; l++) {
+        //printf("l = %d\n", l);
         randombytes(matA2, sizeof matA2);
         randombytes(vec_B, sizeof vec_B);
         memset(vec_C0, 0, sizeof(vec_C0));
         memset(vec_C1, 0, sizeof(vec_C1));
         memset(vec_C2, 0, sizeof(vec_C2));
         
-        if (l % 5  == 0) {
+        // only print the detail version of benchmark in the last iteration.
+        if (l == TEST_RUN) {
             bench_cycles(gf16mat_prod_ref( vec_C0, matA2, N_A_VEC_BYTE, N_A_WIDTH, vec_B ), cycles);
             sum_ref += cycles;
             bench_cycles(gf16mat_prod_48_64( vec_C1, matA2, vec_B ), cycles);    
@@ -441,7 +442,7 @@ void benchmark_gf16mat_prod_32_X(){
     uint8_t out_m4[ N_A_VEC_BYTE_test ];
 
     int fail = 0;
-    for (int l = 1; l <= 1; l++) {
+    for (int l = 1; l <= TEST_RUN; l++) {
         randombytes((uint8_t*) &N_A_WIDTH_test, sizeof(uint8_t));
         //N_A_WIDTH_test = N_A_WIDTH_test % 32 + 1;
         uint8_t matA3[ N_A_VEC_BYTE_test * N_A_WIDTH_test ];
@@ -452,12 +453,22 @@ void benchmark_gf16mat_prod_32_X(){
         memset(out_mve, 0, sizeof(out_mve));
         memset(out_m4, 0, sizeof(out_m4));
         
-        bench_cycles(gf16mat_prod_ref(out_ref, matA3, N_A_VEC_BYTE_test, N_A_WIDTH_test, vec_B3), cycles);
-        sum_ref += cycles;
-        bench_cycles(gf16mat_prod_32_X(out_mve, matA3, vec_B3, N_A_WIDTH_test), cycles);
-        sum_mve += cycles;
-        bench_cycles(gf16mat_prod_m4f_32_X_normal_normal(out_m4, matA3, vec_B3, N_A_WIDTH_test), cycles);
-        sum_m4 += cycles;
+        if (l == TEST_RUN) {
+            bench_cycles(gf16mat_prod_ref(out_ref, matA3, N_A_VEC_BYTE_test, N_A_WIDTH_test, vec_B3), cycles);
+            sum_ref += cycles;
+            bench_cycles(gf16mat_prod_32_X(out_mve, matA3, vec_B3, N_A_WIDTH_test), cycles);
+            sum_mve += cycles;
+            bench_cycles(gf16mat_prod_m4f_32_X_normal_normal(out_m4, matA3, vec_B3, N_A_WIDTH_test), cycles);
+            sum_m4 += cycles;
+        }
+        else {
+            bench_cycles3(gf16mat_prod_ref(out_ref, matA3, N_A_VEC_BYTE_test, N_A_WIDTH_test, vec_B3), cycles);
+            sum_ref += cycles;
+            bench_cycles3(gf16mat_prod_32_X(out_mve, matA3, vec_B3, N_A_WIDTH_test), cycles);
+            sum_mve += cycles;
+            bench_cycles3(gf16mat_prod_m4f_32_X_normal_normal(out_m4, matA3, vec_B3, N_A_WIDTH_test), cycles);
+            sum_m4 += cycles;
+        }
         
         if (memcmp(out_ref, out_mve, N_A_VEC_BYTE_test)) {
             printf("out_ref = ");

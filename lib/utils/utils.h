@@ -47,6 +47,7 @@ void PMU_Send_Status( char *s, pmu_stats const *stats );
 
 #define bench_cycles(CALL, OUT_VAR)                                            \
     do {                                                                       \
+        __disable_irq();\
         pmu_stats stats;                                                       \
         PMU_Init_Status(&stats);                                               \
         CALL;                                                                  \
@@ -54,6 +55,7 @@ void PMU_Send_Status( char *s, pmu_stats const *stats );
         PMU_Send_Status(#CALL, &stats);                                        \
         printf("stats.pmu_cycles: %" PRIu32 " cycles\n\n", stats.pmu_cycles);  \
         OUT_VAR = stats.pmu_cycles;                                            \
+        __enable_irq();\
     } while (0)
 
 #define bench_cycles2(CALL, OUT_VAR, RET_VAR)                          \
@@ -67,7 +69,7 @@ void PMU_Send_Status( char *s, pmu_stats const *stats );
         OUT_VAR = ARM_PMU_Get_CCNTR();                                 \
         __enable_irq();                                                \
     } while (0)
-
+ 
 #define bench_cycles3(CALL, OUT_VAR)                                   \
     do {                                                               \
         __disable_irq();                                               \
