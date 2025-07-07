@@ -65,7 +65,7 @@ void PMU_Finalize(void) {
 
 void PMU_Init_Status( pmu_stats *s ){
     memset(s,0,sizeof(*s));
-
+    
 #define ID_INST_RETIRED        0
 #define ID_STALL               1
 #define ID_MVE_STALL           2
@@ -87,8 +87,7 @@ void PMU_Init_Status( pmu_stats *s ){
 
     ARM_PMU_EVCNTR_ALL_Reset();
     ARM_PMU_CYCCNT_Reset();
-
-
+    
     ARM_PMU_CNTR_Enable(PMU_CNTENSET_CNT0_ENABLE_Msk|
                         PMU_CNTENSET_CNT1_ENABLE_Msk|
                         PMU_CNTENSET_CNT2_ENABLE_Msk|
@@ -97,8 +96,8 @@ void PMU_Init_Status( pmu_stats *s ){
                         PMU_CNTENSET_CNT5_ENABLE_Msk|
                         PMU_CNTENSET_CNT6_ENABLE_Msk|
                         PMU_CNTENSET_CNT7_ENABLE_Msk);
+    
     ARM_PMU_CNTR_Enable(PMU_CNTENSET_CCNTR_ENABLE_Msk);
-
     SysTick_Config(0xFFFFFFu);
 }
 
@@ -114,7 +113,6 @@ void PMU_Finalize_Status( pmu_stats *s ){
                          PMU_CNTENSET_CNT7_ENABLE_Msk);
     s->pmu_cycles = ARM_PMU_Get_CCNTR();
     s->systick_cycles = 16777216llu - SysTick->VAL;
-
     s->inst_all      = ARM_PMU_Get_EVCNTR(ID_INST_RETIRED        );
     s->inst_mve_all  = ARM_PMU_Get_EVCNTR(ID_MVE_INST_RETIRED    );
     s->inst_mve_lsu  = ARM_PMU_Get_EVCNTR(ID_MVE_LDST_RETIRED    );
@@ -138,19 +136,22 @@ void PMU_Send_Status( char *s, pmu_stats const *stats ){
             ( stats->stall_all * 100 ) / stats->inst_all );
     printf( "- MVE instructions:     %" PRIu32 " (%" PRIu32 "%% of instructions)\n", stats->inst_mve_all,
             ( stats->inst_mve_all * 100) / stats->inst_all );
-    printf( "- MVE LSU instructions: %" PRIu32 " (%" PRIu32 "%% of MVE instructions, busy %" PRIu32 "%% of cycles)\n", stats->inst_mve_lsu,
+    /*printf( "- MVE LSU instructions: %" PRIu32 " (%" PRIu32 "%% of MVE instructions, busy %" PRIu32 "%% of cycles)\n", stats->inst_mve_lsu,
             ( stats->inst_mve_lsu * 100) / stats->inst_mve_all,
             ( stats->inst_mve_lsu * 2 * 100) / stats->pmu_cycles );
     printf( "- MVE INT instructions: %" PRIu32 " (%" PRIu32 "%% of MVE instructions, busy %" PRIu32 "%% of cycles)\n", stats->inst_mve_int,
             ( stats->inst_mve_int * 100) / stats->inst_mve_all,
             ( stats->inst_mve_int * 2 * 100) / stats->pmu_cycles );
+            
     printf( "- MVE MUL instructions: %" PRIu32 " (%" PRIu32 "%% of MVE instructions, busy %" PRIu32 "%% of cycles)\n", stats->inst_mve_mul,
-            ( stats->inst_mve_mul * 100) / stats->inst_mve_all,
+            stats->inst_mve_all? ( stats->inst_mve_mul * 100) / stats->inst_mve_all: 0,
             ( stats->inst_mve_mul * 2 * 100) / stats->pmu_cycles );
+            
+
     printf( "- MVE stalls:           %" PRIu32 " (%" PRIu32 "%% of MVE instructions)\n", stats->stall_mve_all,
             ( stats->stall_mve_all * 100 ) / stats->inst_mve_all );
     printf( "- MVE resource stalls:  %" PRIu32 " (%" PRIu32 "%% of MVE stalls)\n", stats->stall_mve_resource,
-            ( stats->stall_mve_resource * 100 ) / stats->stall_mve_all );
+            ( stats->stall_mve_resource * 100 ) / stats->stall_mve_all );  */
 
     /* printf(
             "%s " 
