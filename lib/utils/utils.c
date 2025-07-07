@@ -136,10 +136,10 @@ void PMU_Send_Status( char *s, pmu_stats const *stats ){
             ( stats->stall_all * 100 ) / stats->inst_all );
     printf( "- MVE instructions:     %" PRIu32 " (%" PRIu32 "%% of instructions)\n", stats->inst_mve_all,
             ( stats->inst_mve_all * 100) / stats->inst_all );
-    /*printf( "- MVE LSU instructions: %" PRIu32 " (%" PRIu32 "%% of MVE instructions, busy %" PRIu32 "%% of cycles)\n", stats->inst_mve_lsu,
+    printf( "- MVE LSU instructions: %" PRIu32 " (%" PRIu32 "%% of MVE instructions, busy %" PRIu32 "%% of cycles)\n", stats->inst_mve_lsu,
             ( stats->inst_mve_lsu * 100) / stats->inst_mve_all,
             ( stats->inst_mve_lsu * 2 * 100) / stats->pmu_cycles );
-    printf( "- MVE INT instructions: %" PRIu32 " (%" PRIu32 "%% of MVE instructions, busy %" PRIu32 "%% of cycles)\n", stats->inst_mve_int,
+    /*printf( "- MVE INT instructions: %" PRIu32 " (%" PRIu32 "%% of MVE instructions, busy %" PRIu32 "%% of cycles)\n", stats->inst_mve_int,
             ( stats->inst_mve_int * 100) / stats->inst_mve_all,
             ( stats->inst_mve_int * 2 * 100) / stats->pmu_cycles );
             

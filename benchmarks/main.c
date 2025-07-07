@@ -410,7 +410,6 @@ void benchmark_gf16mat_prod_48_64(){
     
     int fail = 0;
     for (int l = 1; l <= 1; l++) {
-        //printf("l = %d\n", l);
         randombytes(matA2, sizeof matA2);
         randombytes(vec_B, sizeof vec_B);
         memset(vec_C0, 0, sizeof(vec_C0));
@@ -419,9 +418,11 @@ void benchmark_gf16mat_prod_48_64(){
         
         bench_cycles(gf16mat_prod_ref( vec_C0, matA2, N_A_VEC_BYTE, N_A_WIDTH, vec_B ), cycles);
         sum_ref += cycles;
-        bench_cycles(gf16mat_prod_48_64( vec_C1, matA2, vec_B ), cycles);    
+        bench_cycles(gf16mat_prod_ref( vec_C1, matA2, N_A_VEC_BYTE, N_A_WIDTH, vec_B ), cycles);
+        //bench_cycles(gf16mat_prod_48_64( vec_C1, matA2, vec_B ), cycles);    
         sum_mve += cycles;
-        bench_cycles(gf16mat_prod_m4f_48_64_normal_normal((uint32_t*) vec_C2, (uint32_t*) matA2, vec_B ), cycles);    
+        bench_cycles(gf16mat_prod_ref( vec_C2, matA2, N_A_VEC_BYTE, N_A_WIDTH, vec_B ), cycles);
+        //bench_cycles(gf16mat_prod_m4f_48_64_normal_normal((uint32_t*) vec_C2, (uint32_t*) matA2, vec_B ), cycles);    
         sum_m4 += cycles;
 
         /* // only print the detail version of benchmark in the last iteration.
