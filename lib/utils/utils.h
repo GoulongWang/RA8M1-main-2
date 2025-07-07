@@ -77,7 +77,7 @@ void PMU_Send_Status( char *s, pmu_stats const *stats );
         ARM_PMU_CNTR_Enable(PMU_CNTENSET_CCNTR_ENABLE_Msk);            \
         CALL;                                                          \
         ARM_PMU_CNTR_Disable(PMU_CNTENCLR_CCNTR_ENABLE_Msk);           \
-        printf(#CALL ": cycles = %" PRIu32 "\n", ARM_PMU_Get_CCNTR()); \
+        /* printf(#CALL ": cycles = %" PRIu32 "\n", ARM_PMU_Get_CCNTR()) */; \
         OUT_VAR = ARM_PMU_Get_CCNTR();                                 \
         __enable_irq();                                                \
     } while (0)

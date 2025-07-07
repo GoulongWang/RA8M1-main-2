@@ -101,6 +101,12 @@ void PMU_Init_Status( pmu_stats *s ){
     SysTick_Config(0xFFFFFFu);
 }
 
+static volatile unsigned long long overflowcnt = 0;
+/* SysTick Interrupt */
+void SysTick_Handler(void) {
+    overflowcnt++;
+}
+
 void PMU_Finalize_Status( pmu_stats *s ){
     ARM_PMU_CNTR_Disable(PMU_CNTENSET_CCNTR_ENABLE_Msk);
     ARM_PMU_CNTR_Disable(PMU_CNTENSET_CNT0_ENABLE_Msk|
