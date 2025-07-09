@@ -101,7 +101,7 @@ ov_publicmap_mve:
     add r5, r5, #1
     cmp r5, #32
     bne 5b 
- 
+/* 
     // P3
     mov r5, #0
     add r11, r4, #32 // the first addr of _x[v + i] = r4 + 32 + 0
@@ -138,7 +138,7 @@ ov_publicmap_mve:
     add r5, r5, #1
     cmp r5, #128 //#32
     bne 9b
-  
+  */
     add sp, sp, #512
     pop {r4-r12}
     bx lr 

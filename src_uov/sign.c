@@ -141,7 +141,7 @@ crypto_sign_open(unsigned char *m, unsigned long long *mlen, const unsigned char
     if ( OV_SIGNATUREBYTES > smlen ) {
         goto badsig;
     }
-
+    
     *mlen = smlen - OV_SIGNATUREBYTES;
     if(crypto_sign_verify(sm + *mlen, OV_SIGNATUREBYTES, sm, *mlen, pk)) {
       goto badsig;

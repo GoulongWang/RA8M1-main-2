@@ -111,7 +111,6 @@ crypto_sign_verify(const unsigned char *sig, unsigned long long siglen, const un
     }
 
     #if defined _OV_CLASSIC
-
     r = ov_verify( m, mlen, sig, (const pk_t *)pk );
 
     #elif defined _OV_PKC

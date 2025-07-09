@@ -5,11 +5,11 @@
 #include "../../randombytes.h"
 
 #define TEST_RUN 100
-#define N 64
+#define N 160
 #define M 64
 #define _MAX_N 256
 #define TMPVEC_LEN 32
-#define _PUB_N 64
+#define _PUB_N 160
 #define _PUB_M 64
 #define _V 32
 #define _PUB_M_BYTE (_PUB_M / 2)
@@ -33,6 +33,7 @@ int main(){
 
         ov_publicmap(acc, P, sig);
         ov_publicmap_mve(acc_mve, P, sig);
+        
 
         if(memcmp(acc_mve, acc, sizeof(acc))){
             printf("acc_ref = [");
@@ -48,9 +49,8 @@ int main(){
             printf("]\n"); 
             fail = 1;
             break;
-        }   
+        }  
     } 
-
     printf((fail) ? "TEST FAIL.!\n" : "TEST PASS.\n");
     return 0;
 }
@@ -90,16 +90,34 @@ void gf16v_add(uint8_t *a, const uint8_t *b, unsigned _num_byte) {
         a[i] ^= b[i];
     }
 }
-
+void dump(uint8_t *y, int i, int j, uint8_t *p){
+    // error: i == 0 && j == 32
+    if (i == 31  && j == 127 ) {
+        //printf("_xixj[%d]_mve = %d\n", j, p[j]);
+        
+        /* printf("_x_mve = [");
+        for (int i = 0; i < 160; i++) {
+            printf("%02x ", p[i]);
+        }
+        printf("]\n");
+ */
+         printf("y_mve = [");
+        for (int i = 0; i < 32; i++) {
+            printf("%02x ", y[i]);
+        }
+        printf("]\n"); 
+    }
+}
 void ov_publicmap( unsigned char *y, const unsigned char *trimat, const unsigned char *x ) {
     unsigned char _xixj[_MAX_N] = {0};
     unsigned v = _V;
     unsigned o = _PUB_N - _V;
     unsigned char _x[_MAX_N];
-
+    
     for (unsigned i = 0; i < _PUB_N; i++) {
         _x[i] = gfv_get_ele( x, i );
     }
+    
     unsigned int vec_len = _PUB_M_BYTE;
 
     // P1
@@ -108,41 +126,56 @@ void ov_publicmap( unsigned char *y, const unsigned char *trimat, const unsigned
         for (unsigned j = i; j < _V; j++) {
             _xixj[j] = _x[j];
         }
-        
+
         gf16v_mul( _xixj + i_start, _x[i], v - i_start );
         
         for (unsigned j = i; j < v; j++) {
             gf16v_madd(y, trimat, _xixj[j], vec_len);
             trimat += vec_len;
         }
-    }
-
+    }   
+        
     // P2
     for (unsigned i = 0; i < v; i++) {
         for (unsigned j = 0; j < o; j++) {
             _xixj[j] = _x[v + j];
-        }
-
+        }   
+        
         gf16v_mul( _xixj, _x[i], o );
 
         for (unsigned j = 0; j < o; j++) {
             gf16v_madd(y, trimat, _xixj[j], vec_len);
-            trimat += vec_len;    
-        }
-    }
+            trimat += vec_len;  
+            if (i == 31 && j == 127) {
+                //printf("_xixj[%d]_ref = %d\n", j, _xixj[j]);
 
+                /* printf("_xixj_ref = [");
+                for (int i = 0; i < 160; i++) {
+                    printf("%02x ", _xixj[i]);
+                }       
+                printf("]\n"); */
+
+                /* printf("y_ref = [");
+                for (int i = 0; i < 32; i++) {
+                    printf("%02x ", y[i]);
+                }
+                printf("]\n"); */ 
+            }
+        }  
+    }
+ 
     // P3
     for (unsigned i = 0; i < o; i++) {
         unsigned i_start = i - (i & 3);
         for (unsigned j = i; j < o; j++) {
             _xixj[j] = _x[v + j];
         }
-
+         
         gf16v_mul( _xixj + i_start, _x[v + i], o - i_start );
         
         for (unsigned j = i; j < o; j++) {
             gf16v_madd(y, trimat, _xixj[j], vec_len);
             trimat += vec_len;
-        }
-    }
+        } 
+    } 
 }
