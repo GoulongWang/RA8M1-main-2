@@ -113,7 +113,7 @@ make run-trimat-2trimat-madd-gf256.elf
 
 ### UOV-Ip: ov_publicmap
 ```
-
+make run-ov-publicmap-gf256.elf
 ```
 
 ### UOV-Ip
