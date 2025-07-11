@@ -71,7 +71,7 @@ void accu_eval_quad_gf16( unsigned char *accu_res, const unsigned char *trimat, 
             #endif
             trimat += vec_len;
         }
-    } 
+    }
     // P2
     for (unsigned i = 0; i < v; i++) {
         if ( !_x[i] ) {
@@ -93,7 +93,7 @@ void accu_eval_quad_gf16( unsigned char *accu_res, const unsigned char *trimat, 
             #endif
             trimat += vec_len;
         }
-    } 
+    }
     // P3
     for (unsigned i = 0; i < o; i++) {
         #if defined( _BLAS_AVX2_ )

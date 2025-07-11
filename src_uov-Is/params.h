@@ -14,8 +14,8 @@
 
 #if (!defined(_OV16_160_64))&&(!defined(_OV256_112_44))&&(!defined(_OV256_184_72))&&(!defined(_OV256_244_96))
 
-//#define _OV16_160_64 // Is
-#define _OV256_112_44 // Ip
+#define _OV16_160_64
+//#define _OV256_112_44
 // #define _OV256_184_72
 // #define _OV256_244_96
 #endif

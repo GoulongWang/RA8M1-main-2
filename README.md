@@ -55,8 +55,8 @@ printf "Sleep 2000\nLoadFile bench_ra8m1.elf\ngo\nSleep 3600000" | JLinkExe -if 
 
 | UOV-Ip | cycles in C |cycles with MVE functions |
 |----------|-------------|-|
-| crypto_sign_keypair | 581,317,233 ||
-| crypto_sign | 10,233,294 ||
+| crypto_sign_keypair | 581,317,233 | 261,884,426 |
+| crypto_sign | 10,233,294 | 5,584,101 |
 | crypto_sign_open | 2,872,759 ||
 
 ## Unit Test

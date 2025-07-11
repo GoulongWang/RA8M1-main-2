@@ -4,7 +4,7 @@
 ///
 
 #include "utils_prng.h"
-
+#include <stdio.h>
 #include <string.h>  // for memcpy()
 
 
@@ -299,7 +299,6 @@ int prng_gen_publicinputs(prng_publicinputs_t *ctx, unsigned char *out, unsigned
         xlen -= ready;
         out += ready;
     }
-
 
     if (xlen >= RNG_OUTPUTLEN) {
         uint32_t nblocks = xlen / RNG_OUTPUTLEN;

@@ -29,9 +29,9 @@
 #if defined(_VALGRIND_)
 #include "valgrind/memcheck.h"
 #endif
-void gf256mat_prod_1936_68(uint8_t *c, const uint8_t *matA, const uint8_t *b);
-void gf256mat_prod_68_44(uint8_t *c, const uint8_t *matA, const uint8_t *b);
-void gf256mat_prod_44_X(uint8_t *c, const uint8_t *matA, const uint8_t *b, size_t n_A_width);
+
+void gf16mat_prod_2048_96(uint8_t *c, const uint8_t *matA, const uint8_t *b);
+void gf16mat_prod_48_64(uint8_t *c, const uint8_t *matA, const uint8_t *b);
 int ov_sign( uint8_t *signature, const sk_t *sk, const uint8_t *message, size_t mlen ) {
     // allocate temporary storage.
     uint8_t mat_l1[_O * _O_BYTE];
@@ -73,12 +73,12 @@ int ov_sign( uint8_t *signature, const sk_t *sk, const uint8_t *message, size_t 
 
 // generate linear system:
 // matrix
-        // 1936 * 68
-        gf256mat_prod_1936_68(mat_l1, sk->S, vinegar);
+        // 2048 * 96
+        gf16mat_prod_2048_96(mat_l1, sk->S, vinegar);
         //gfmat_prod( mat_l1, sk->S, _O * _O_BYTE, _V, vinegar );
 // constant
         // Given vinegars, evaluate P1 with the vinegars
-        batch_quad_trimat_eval( r_l1_F1, sk->P1, vinegar, _V, _O_BYTE ); // mve
+        batch_quad_trimat_eval( r_l1_F1, sk->P1, vinegar, _V, _O_BYTE );
         gf256v_add( r_l1_F1, y, _O_BYTE );      // substract the contribution from vinegar variables
 
 // solve linear system:
@@ -119,8 +119,8 @@ int ov_sign( uint8_t *signature, const sk_t *sk, const uint8_t *message, size_t 
     memcpy( w + _V_BYTE, x_o1, _O_BYTE );
 
     // Computing the O part of T.
-    //68*44
-    gf256mat_prod_68_44(y, sk->O, x_o1);
+    // 48 * 64
+    gf16mat_prod_48_64(y, sk->O, x_o1);
     //gfmat_prod(y, sk->O, _V_BYTE, _O, x_o1 );
     gf256v_add(w, y, _V_BYTE );
 
@@ -148,18 +148,22 @@ int _ov_verify( const uint8_t *message, size_t mlen, const uint8_t *salt, const 
     return (0 == cc) ? 0 : -1;
 }
 
+
+
+
 #if !(defined(_OV_PKC) || defined(_OV_PKC_SKC)) || !defined(_SAVE_MEMORY_)
-//void ov_publicmap_mve( unsigned char *y, const unsigned char *trimat, const unsigned char *x );
+void ov_publicmap_mve( unsigned char *y, const unsigned char *trimat, const unsigned char *x );
 int ov_verify( const uint8_t *message, size_t mlen, const uint8_t *signature, const pk_t *pk ) {
     #if defined(_VALGRIND_)
     VALGRIND_MAKE_MEM_DEFINED(signature, OV_SIGNATUREBYTES );  // mark signature as public data
     #endif
     unsigned char digest_ck[_PUB_M_BYTE];
-    ov_publicmap( digest_ck, pk->pk, signature );
-    //ov_publicmap_mve(digest_ck, pk->pk, signature);
-    return _ov_verify( message, mlen, signature + _PUB_N_BYTE, digest_ck ); 
+    //ov_publicmap( digest_ck, pk->pk, signature );
+    ov_publicmap_mve( digest_ck, pk->pk, signature );
+    return _ov_verify( message, mlen, signature + _PUB_N_BYTE, digest_ck );
 }
 #endif
+
 
 #if defined(_OV_PKC) || defined(_OV_PKC_SKC)
 #if !defined(PQM4)

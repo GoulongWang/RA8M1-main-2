@@ -29,6 +29,7 @@ int
 crypto_sign_keypair(unsigned char *pk, unsigned char *sk) {
     unsigned char sk_seed[LEN_SKSEED];
     randombytes( sk_seed, LEN_SKSEED );
+    
 
     #if defined(_VALGRIND_)
     VALGRIND_MAKE_MEM_UNDEFINED(sk_seed, LEN_SKSEED );  // mark secret data as undefined data
@@ -111,6 +112,7 @@ crypto_sign_verify(const unsigned char *sig, unsigned long long siglen, const un
     }
 
     #if defined _OV_CLASSIC
+
     r = ov_verify( m, mlen, sig, (const pk_t *)pk );
 
     #elif defined _OV_PKC
@@ -139,7 +141,7 @@ crypto_sign_open(unsigned char *m, unsigned long long *mlen, const unsigned char
     if ( OV_SIGNATUREBYTES > smlen ) {
         goto badsig;
     }
-
+    
     *mlen = smlen - OV_SIGNATUREBYTES;
     if(crypto_sign_verify(sm + *mlen, OV_SIGNATUREBYTES, sm, *mlen, pk)) {
       goto badsig;
