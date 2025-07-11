@@ -19,13 +19,13 @@
 #define gf256v_add  _gf256v_add_u32
 #define gf256v_madd _gf256v_madd_u32
 
-#define N 64
+#define N 160
 #define M 64
 #define _MAX_N 256
 #define TMPVEC_LEN 32
-#define _PUB_N 64
+#define _PUB_N 160
 #define _PUB_M 64
-#define _V 32
+#define _V 96
 #define _PUB_M_BYTE (_PUB_M / 2)
 #define _GFSIZE 16
 
@@ -544,7 +544,7 @@ void benchmark_gf16trimat_2trimat_madd_96_48_64_32(){
 }
 
 void benchmark_ov_publicmap(){
-    printf("\n=== GF16 ov_publicmap Benchmark ===\n");
+    printf("\n=== UOV-Is: ov_publicmap Benchmark ===\n");
     uint32_t sum_ref = 0, sum_mve = 0;
     uint32_t cycles;
 
@@ -578,7 +578,7 @@ void benchmark_ov_publicmap(){
             printf("]\n"); 
             fail = 1;
             break;
-        }   
+        } 
     } 
 
     // detail version of benchmark
