@@ -48,6 +48,9 @@ run-ov-publicmap-gf16.elf: ov-publicmap-gf16.elf
 run-uov-Is.elf: uov-Is.elf
 	qemu-system-arm -M mps3-an547 -nographic -semihosting -kernel $<
 
+run-uov-Ip.elf: uov-Ip.elf
+	qemu-system-arm -M mps3-an547 -nographic -semihosting -kernel $<
+
 %.elf: %.c.o $(OBJS) $(LDSCRIPT) $(LIBDEBS)
 	$(LD) $(LDFLAGS) -o $@ $(OBJS) -Wl,--start-group $(LDLIBS) -Wl,--end-group
 
@@ -104,6 +107,12 @@ UOV_IS_SRCS := $(wildcard $(UOV_IS_DIR)/*.c $(UOV_IS_DIR)/*.S)
 UOV_IS_OBJS := $(patsubst %.c,%.c.o,$(UOV_IS_SRCS))
 uov-Is.elf: $(UOV_IP_OBJS) $(LDSCRIPT) $(LIBDEBS)
 	$(LD) $(LDFLAGS) -o $@ $(UOV_IS_OBJS) -Wl,--start-group $(LDLIBS) -Wl,--end-group
+
+UOV_IP_DIR := gf256/UOV-Ip
+UOV_IP_SRCS := $(wildcard $(UOV_IP_DIR)/*.c $(UOV_IP_DIR)/*.S)
+UOV_IP_OBJS := $(patsubst %.c,%.c.o,$(UOV_IP_SRCS))
+uov-Ip.elf: $(UOV_IP_OBJS) $(LDSCRIPT) $(LIBDEBS)
+	$(LD) $(LDFLAGS) -o $@ $(UOV_IP_OBJS) -Wl,--start-group $(LDLIBS) -Wl,--end-group
 
 # Dependencies for macro file
 vec_scalar_mul_gf16_mve.S.o:  vec_scalar_mul_gf16_mve.i
