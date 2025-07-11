@@ -40,25 +40,24 @@ printf "Sleep 2000\nLoadFile bench_ra8m1.elf\ngo\nSleep 3600000" | JLinkExe -if 
 | UOV-Is: gf16mat_prod 48_64    | 21453   |   52976 |            16093 |
 | UOV-Is: gf16mat_prod 32_X     | 3741    |    8491 |             2778 |
 | UOV-Is: gf16trimat_2trimat_madd 96_48_64_32| 103,977,285 |776,791,141|114,558,066|
-| GF16 ov_publicmap | 518,931 | 792,646 | |
+| UOV-Is: ov_publicmap | 518,931 | 792,646 | |
 | UOV-Ip: gf256mat_prod 1936_68 | 1188551 | 3088048 |          1397865 |
 | UOV-Ip: gf256mat_prod 68_44   | 32946   |  145800 |            33619 |
 | UOV-Ip: gf256mat_prod 44_X    | 10511   |   31539 |            11261 |
 | UOV-Ip: gf256trimat_2trimat_madd 68_68_44_44 | 96,998,349 | 187,126,589 | 104,198,645 |
-
-| UOV-Ip | cycles in C |
-|----------|-------------|
-| crypto_sign_keypair | 581,317,233 |
-| crypto_sign | 10,233,294 |
-| crypto_sign_open | 2,872,759 |
-| crypto_sign_signature | 10,082,435 |
-| crypto_sign_verify | 2,666,743 |
+| UOV-Ip: ov_publicmap | | | |
 
 | UOV-Is | cycles in C | cycles with MVE functions |
 |----------|-------------|-|
 | crypto_sign_keypair | 689,265,514 | 385,066,286 |
 | crypto_sign | 9,026,024 | 5,920,696 |
-| crypto_sign_open | 2,300,375 ||
+| crypto_sign_open | 2,300,375 | 3,439,521 |
+
+| UOV-Ip | cycles in C |cycles with MVE functions |
+|----------|-------------|-|
+| crypto_sign_keypair | 581,317,233 ||
+| crypto_sign | 10,233,294 ||
+| crypto_sign_open | 2,872,759 ||
 
 ## Unit Test
 ### GF16 Vector-scalar Multiplication
@@ -66,10 +65,10 @@ printf "Sleep 2000\nLoadFile bench_ra8m1.elf\ngo\nSleep 3600000" | JLinkExe -if 
 make run-vec-scalar-gf16.elf
 ```
 
-### GF16 UOV Matrix-vector Multiplication
-- UOV-Is: gf16mat_prod 2048_96
-- UOV-Is: gf16mat_prod 48_64
-- UOV-Is: gf16mat_prod 32_X
+### UOV-Is: Matrix-vector Multiplication
+- gf16mat_prod 2048_96
+- gf16mat_prod 48_64
+- gf16mat_prod 32_X
 
 ```
 make run-mat-vec-gf16.elf
@@ -85,9 +84,9 @@ make run-trimat-2trimat-madd-gf16.elf
 make run-ov-publicmap-gf16.elf
 ```
 
-### UOV-Ip
+### UOV-Is
 ```
-make run-uov-Ip.elf
+make run-uov-Is.elf
 ```
 
 ### GF16 MAYO Matrix Multiplication
@@ -100,10 +99,10 @@ make run-mayo-mat.elf
 make run-vec-scalar-gf256.elf
 ```
 
-### GF256 Matrix-vector Multiplication
-- UOV-Ip: gf256mat_prod 1936_68
-- UOV-Ip: gf256mat_prod 68_44
-- UOV-Ip: gf256mat_prod 44_X
+### UOV-Ip: Matrix-vector Multiplication
+- gf256mat_prod 1936_68
+- gf256mat_prod 68_44
+- gf256mat_prod 44_X
 ```
 make run-mat-vec-gf256.elf
 ```

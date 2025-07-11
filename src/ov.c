@@ -152,13 +152,14 @@ int _ov_verify( const uint8_t *message, size_t mlen, const uint8_t *salt, const 
 
 
 #if !(defined(_OV_PKC) || defined(_OV_PKC_SKC)) || !defined(_SAVE_MEMORY_)
+void ov_publicmap_mve( unsigned char *y, const unsigned char *trimat, const unsigned char *x );
 int ov_verify( const uint8_t *message, size_t mlen, const uint8_t *signature, const pk_t *pk ) {
     #if defined(_VALGRIND_)
     VALGRIND_MAKE_MEM_DEFINED(signature, OV_SIGNATUREBYTES );  // mark signature as public data
     #endif
     unsigned char digest_ck[_PUB_M_BYTE];
-    ov_publicmap( digest_ck, pk->pk, signature );
-
+    //ov_publicmap( digest_ck, pk->pk, signature );
+    ov_publicmap_mve( digest_ck, pk->pk, signature );
     return _ov_verify( message, mlen, signature + _PUB_N_BYTE, digest_ck );
 }
 #endif

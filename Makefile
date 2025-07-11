@@ -45,7 +45,7 @@ run-trimat-2trimat-madd-gf256.elf: trimat_2trimat_madd_gf256.elf
 run-ov-publicmap-gf16.elf: ov-publicmap-gf16.elf
 	qemu-system-arm -M mps3-an547 -nographic -semihosting -kernel $<
 
-run-uov-Ip.elf: uov-Ip.elf
+run-uov-Is.elf: uov-Is.elf
 	qemu-system-arm -M mps3-an547 -nographic -semihosting -kernel $<
 
 %.elf: %.c.o $(OBJS) $(LDSCRIPT) $(LIBDEBS)
@@ -99,11 +99,11 @@ UOV_PUBLICMAP_OBJS := $(addsuffix .o,$(UOV_PUBLICMAP_SRCS))
 ov-publicmap-gf16.elf: $(UOV_PUBLICMAP_OBJS) randombytes.c.o $(LDSCRIPT) $(LIBDEBS)
 	$(LD) $(LDFLAGS) -o $@ $(UOV_PUBLICMAP_OBJS) randombytes.c.o -Wl,--start-group $(LDLIBS) -Wl,--end-group
 
-UOV_IP_DIR := gf16/UOV-Ip
-UOV_IP_SRCS := $(wildcard $(UOV_IP_DIR)/*.c $(UOV_IP_DIR)/*.S)
-UOV_IP_OBJS := $(patsubst %.c,%.c.o,$(UOV_IP_SRCS))
-uov-Ip.elf: $(UOV_IP_OBJS) $(LDSCRIPT) $(LIBDEBS)
-	$(LD) $(LDFLAGS) -o $@ $(UOV_IP_OBJS) -Wl,--start-group $(LDLIBS) -Wl,--end-group
+UOV_IS_DIR := gf16/UOV-Is
+UOV_IS_SRCS := $(wildcard $(UOV_IS_DIR)/*.c $(UOV_IS_DIR)/*.S)
+UOV_IS_OBJS := $(patsubst %.c,%.c.o,$(UOV_IS_SRCS))
+uov-Is.elf: $(UOV_IP_OBJS) $(LDSCRIPT) $(LIBDEBS)
+	$(LD) $(LDFLAGS) -o $@ $(UOV_IS_OBJS) -Wl,--start-group $(LDLIBS) -Wl,--end-group
 
 # Dependencies for macro file
 vec_scalar_mul_gf16_mve.S.o:  vec_scalar_mul_gf16_mve.i
