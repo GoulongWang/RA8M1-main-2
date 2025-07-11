@@ -80,9 +80,9 @@ make run-mat-vec-gf16.elf
 make run-trimat-2trimat-madd-gf16.elf
 ```
 
-### UOV publicmap
+### UOV-Is: ov_publicmap
 ```
-make run-uov-publicmap.elf
+make run-ov-publicmap-gf16.elf
 ```
 
 ### UOV-Ip

@@ -42,7 +42,7 @@ run-trimat-2trimat-madd-gf16.elf: trimat_2trimat_madd_gf16.elf
 run-trimat-2trimat-madd-gf256.elf: trimat_2trimat_madd_gf256.elf
 	qemu-system-arm -M mps3-an547 -nographic -semihosting -kernel $<
 
-run-uov-publicmap.elf: uov-publicmap.elf
+run-ov-publicmap-gf16.elf: ov-publicmap-gf16.elf
 	qemu-system-arm -M mps3-an547 -nographic -semihosting -kernel $<
 
 run-uov-Ip.elf: uov-Ip.elf
@@ -96,7 +96,7 @@ trimat_2trimat_madd_gf256.elf: randombytes.c.o $(GF256_TRIMAT2TRIMAT_MADD_OBJS) 
 UOV_PUBLICMAP_DIR  := gf16/uov-publicmap
 UOV_PUBLICMAP_SRCS := $(wildcard $(UOV_PUBLICMAP_DIR)/*.c $(UOV_PUBLICMAP_DIR)/*.S)
 UOV_PUBLICMAP_OBJS := $(addsuffix .o,$(UOV_PUBLICMAP_SRCS))
-uov-publicmap.elf: $(UOV_PUBLICMAP_OBJS) randombytes.c.o $(LDSCRIPT) $(LIBDEBS)
+ov-publicmap-gf16.elf: $(UOV_PUBLICMAP_OBJS) randombytes.c.o $(LDSCRIPT) $(LIBDEBS)
 	$(LD) $(LDFLAGS) -o $@ $(UOV_PUBLICMAP_OBJS) randombytes.c.o -Wl,--start-group $(LDLIBS) -Wl,--end-group
 
 UOV_IP_DIR := gf16/UOV-Ip

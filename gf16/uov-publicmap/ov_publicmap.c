@@ -11,7 +11,7 @@
 #define TMPVEC_LEN 32
 #define _PUB_N 160
 #define _PUB_M 64
-#define _V 32
+#define _V 96
 #define _PUB_M_BYTE (_PUB_M / 2)
 #define _GFSIZE 16
 
@@ -19,7 +19,7 @@ void ov_publicmap( unsigned char *y, const unsigned char *trimat, const unsigned
 void ov_publicmap_mve( unsigned char *y, const unsigned char *trimat, const unsigned char *x );
 
 int main(){
-    printf("=== GF16 ov_publicmap Unit Test ===\n");
+    printf("=== UOV-Is: ov_publicmap Unit Test ===\n");
     uint8_t P[M * N * (N + 1) / 4];
     uint8_t sig[N / 2];
     uint8_t acc[M / 2], acc_mve[M / 2];
@@ -90,24 +90,7 @@ void gf16v_add(uint8_t *a, const uint8_t *b, unsigned _num_byte) {
         a[i] ^= b[i];
     }
 }
-void dump(uint8_t *y, int i, int j, uint8_t *p){
-    // error: i == 0 && j == 32
-    if (i == 31  && j == 127 ) {
-        //printf("_xixj[%d]_mve = %d\n", j, p[j]);
-        
-        /* printf("_x_mve = [");
-        for (int i = 0; i < 160; i++) {
-            printf("%02x ", p[i]);
-        }
-        printf("]\n");
- */
-         printf("y_mve = [");
-        for (int i = 0; i < 32; i++) {
-            printf("%02x ", y[i]);
-        }
-        printf("]\n"); 
-    }
-}
+
 void ov_publicmap( unsigned char *y, const unsigned char *trimat, const unsigned char *x ) {
     unsigned char _xixj[_MAX_N] = {0};
     unsigned v = _V;
@@ -146,21 +129,6 @@ void ov_publicmap( unsigned char *y, const unsigned char *trimat, const unsigned
         for (unsigned j = 0; j < o; j++) {
             gf16v_madd(y, trimat, _xixj[j], vec_len);
             trimat += vec_len;  
-            if (i == 31 && j == 127) {
-                //printf("_xixj[%d]_ref = %d\n", j, _xixj[j]);
-
-                /* printf("_xixj_ref = [");
-                for (int i = 0; i < 160; i++) {
-                    printf("%02x ", _xixj[i]);
-                }       
-                printf("]\n"); */
-
-                /* printf("y_ref = [");
-                for (int i = 0; i < 32; i++) {
-                    printf("%02x ", y[i]);
-                }
-                printf("]\n"); */ 
-            }
         }  
     }
  
