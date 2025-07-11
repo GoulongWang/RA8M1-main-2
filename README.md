@@ -54,11 +54,11 @@ printf "Sleep 2000\nLoadFile bench_ra8m1.elf\ngo\nSleep 3600000" | JLinkExe -if 
 | crypto_sign_signature | 10,082,435 |
 | crypto_sign_verify | 2,666,743 |
 
-| UOV-Is | cycles in C |
-|----------|-------------|
-| crypto_sign_keypair | 689,265,514 |
-| crypto_sign | 9,026,024 |
-| crypto_sign_open | 2,300,375 |
+| UOV-Is | cycles in C | cycles with MVE functions |
+|----------|-------------|-|
+| crypto_sign_keypair | 689,265,514 | 385,066,286 |
+| crypto_sign | 9,026,024 | 5,920,696 |
+| crypto_sign_open | 2,300,375 ||
 
 ## Unit Test
 ### GF16 Vector-scalar Multiplication

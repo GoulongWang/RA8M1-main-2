@@ -16,7 +16,7 @@
 
 #ifdef _USE_GF16
 /////////////////  Section: matrix multiplications  ///////////////////////////////
-
+void gf16mat_prod_32_X(uint8_t *c, const uint8_t *matA, const uint8_t *b, size_t n_A_width);
 void batch_trimat_madd_gf16( unsigned char *bC, const unsigned char *btriA,
                              const unsigned char *B, unsigned Bheight, unsigned size_Bcolvec, unsigned Bwidth, unsigned size_batch ) {
 #define MAX_V       (96)
@@ -37,12 +37,16 @@ void batch_trimat_madd_gf16( unsigned char *bC, const unsigned char *btriA,
     unsigned Aheight = Bheight;
     for (unsigned i = 0; i < Aheight; i += 2) {
         for (unsigned j = 0; j < Bwidth; j++) {
+            // 32*x
+            //gf16mat_prod_32_X(tmp_c, btriA, B + j * size_Bcolvec + (i / 2), Aheight - i);
             gf16mat_prod( tmp_c, btriA, size_batch, Aheight - i, B + j * size_Bcolvec + (i / 2) );
             gf256v_add( bC, tmp_c, size_batch);
             bC += size_batch;
         }
         btriA += size_batch * (Aheight - i);
         for (unsigned j = 0; j < Bwidth; j++) {
+            // 32*x
+            //gf16mat_prod_32_X(tmp_c, btriA, B2 + j * size_Bcolvec + (i / 2), Aheight - i - 1);
             gf16mat_prod( tmp_c, btriA, size_batch, Aheight - i - 1, B2 + j * size_Bcolvec + (i / 2) );
             gf256v_add( bC, tmp_c, size_batch);
             bC += size_batch;
