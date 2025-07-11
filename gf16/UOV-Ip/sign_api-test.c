@@ -3,8 +3,8 @@
 #include <string.h>
 #include "api.h"
 
-#define TEST_GENKEY 1
-#define TEST_RUN 1
+#define TEST_GENKEY 10
+#define TEST_RUN 100
 
 int main(void) {
     printf("%s\n", OV_ALGNAME );
@@ -27,7 +27,7 @@ int main(void) {
     printf("===========  test crypto_sign_keypair(), crypto_sign(), and crypto_sign_open()  ================\n\n");
     for (unsigned i = 0; i < TEST_RUN; i++) {
         if ( i < TEST_GENKEY ) {
-            int r0 = crypto_sign_keypair( pk, sk);
+            int r0 = crypto_sign_keypair( pk, sk); // mve
             if ( 0 != r0 ) {
                 printf("generating key return %d.\n", r0);
                 fail = -1;
@@ -40,14 +40,14 @@ int main(void) {
         }
 
         int r1, r2;
-        r1 = crypto_sign( sm, &smlen, m, mlen, sk ); // 已替換
+        r1 = crypto_sign( sm, &smlen, m, mlen, sk ); // mve
         if ( 0 != r1 ) {
             printf("crypto_sign() return %d.\n", r1);
             fail = -1;
             break;
         }
         //sm + *mlen = 352 - 256
-        r2 = crypto_sign_open( m, &mlen, sm, smlen, pk ); 
+        r2 = crypto_sign_open( m, &mlen, sm, smlen, pk ); // mve
         if ( 0 != r2 ) {
             printf("crypto_sign_open() return %d.\n", r2);
             fail = -1;

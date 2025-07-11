@@ -72,8 +72,11 @@ void calculate_F2_P3( unsigned char *S, unsigned char *P3, const unsigned char *
     batch_upper_matTr_x_mat_multab( P3, multabs, _V, _V_BYTE, _O, S, _O, _O_BYTE );     // Q5 = UT . t1_tr*(F1*T1 + F2)
     batch_trimatTr_madd_multab( S, P1, multabs, _V, _V_BYTE, _O, _O_BYTE );       // Q2
     #else
+    // mve
     batch_trimat_madd( S, P1, sk_O, _V, _V_BYTE, _O, _O_BYTE );        // F1*T1 + F2
+    // mve
     batch_upper_matTr_x_mat( P3, sk_O, _V, _V_BYTE, _O, S, _O, _O_BYTE );    // Q5 = UT . t1_tr*(F1*T1 + F2)
+    // mve
     batch_trimatTr_madd( S, P1, sk_O, _V, _V_BYTE, _O, _O_BYTE );       // Q2
     #endif
 }

@@ -58,7 +58,7 @@ int generate_keypair( pk_t *rpk, sk_t *sk, const unsigned char *sk_seed ) {
     // S and P3
     unsigned char *rpk_P2 = rpk->pk + sizeof(sk->P1);
     unsigned char *rpk_P3 = rpk->pk + sizeof(sk->P1) + sizeof(sk->S);
-    calculate_F2_P3( sk->S, rpk_P3, sk->P1, rpk_P2, sk->O );
+    calculate_F2_P3( sk->S, rpk_P3, sk->P1, rpk_P2, sk->O ); // mve
     return 0;
 }
 

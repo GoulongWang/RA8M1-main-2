@@ -38,16 +38,16 @@ void batch_trimat_madd_gf16( unsigned char *bC, const unsigned char *btriA,
     for (unsigned i = 0; i < Aheight; i += 2) {
         for (unsigned j = 0; j < Bwidth; j++) {
             // 32*x
-            //gf16mat_prod_32_X(tmp_c, btriA, B + j * size_Bcolvec + (i / 2), Aheight - i);
-            gf16mat_prod( tmp_c, btriA, size_batch, Aheight - i, B + j * size_Bcolvec + (i / 2) );
+            gf16mat_prod_32_X(tmp_c, btriA, B + j * size_Bcolvec + (i / 2), Aheight - i);
+            //gf16mat_prod( tmp_c, btriA, size_batch, Aheight - i, B + j * size_Bcolvec + (i / 2) );
             gf256v_add( bC, tmp_c, size_batch);
             bC += size_batch;
         }
         btriA += size_batch * (Aheight - i);
         for (unsigned j = 0; j < Bwidth; j++) {
             // 32*x
-            //gf16mat_prod_32_X(tmp_c, btriA, B2 + j * size_Bcolvec + (i / 2), Aheight - i - 1);
-            gf16mat_prod( tmp_c, btriA, size_batch, Aheight - i - 1, B2 + j * size_Bcolvec + (i / 2) );
+            gf16mat_prod_32_X(tmp_c, btriA, B2 + j * size_Bcolvec + (i / 2), Aheight - i - 1);
+            //gf16mat_prod( tmp_c, btriA, size_batch, Aheight - i - 1, B2 + j * size_Bcolvec + (i / 2) );
             gf256v_add( bC, tmp_c, size_batch);
             bC += size_batch;
         }
@@ -76,7 +76,8 @@ void batch_trimatTr_madd_gf16( unsigned char *bC, const unsigned char *btriA,
         memcpy( tmp_Arow + i * size_batch, ptr, size_batch );
 
         for (unsigned j = 0; j < Bwidth; j++) {
-            gf16mat_prod( tmp_c, tmp_Arow, size_batch, i + 1, B + (j * size_Bcolvec) );
+            gf16mat_prod_32_X(tmp_c, tmp_Arow, B + (j * size_Bcolvec), i + 1);
+            //gf16mat_prod( tmp_c, tmp_Arow, size_batch, i + 1, B + (j * size_Bcolvec) );
             gf256v_add( bC, tmp_c, size_batch);
             bC += size_batch;
         }
@@ -115,7 +116,7 @@ void batch_2trimat_madd_gf16( unsigned char *bC, const unsigned char *btriA,
 ////////////////
 
 
-
+void gf16mat_prod_2048_96(uint8_t *c, const uint8_t *matA, const uint8_t *b);
 void batch_upper_matTr_x_mat_gf16( unsigned char *bC, const unsigned char *A_to_tr, unsigned Aheight, unsigned size_Acolvec, unsigned Awidth,
                                    const unsigned char *bB, unsigned Bwidth, unsigned size_batch ) {
 #define MAX_O  (64)
@@ -126,7 +127,9 @@ void batch_upper_matTr_x_mat_gf16( unsigned char *bC, const unsigned char *A_to_
     unsigned Atr_height = Awidth;
     unsigned Atr_width  = Aheight;
     for (unsigned i = 0; i < Atr_height; i++) {
-        gf16mat_prod( row, bB, Bwidth * size_batch, Atr_width, A_to_tr + size_Acolvec * i );
+        // 2048*96
+        gf16mat_prod_2048_96(row, bB, A_to_tr + size_Acolvec * i);
+        //gf16mat_prod( row, bB, Bwidth * size_batch, Atr_width, A_to_tr + size_Acolvec * i );
         uint8_t *ptr = bC + i * size_batch;
         for (unsigned j = 0; j < i; j++) {
             gf256v_add( ptr, row + size_batch * j, size_batch );
@@ -151,7 +154,7 @@ void batch_quad_trimat_eval_gf16( unsigned char *y, const unsigned char *trimat,
 }
 
 #else
-
+void gf16mat_prod_32_X(uint8_t *c, const uint8_t *matA, const uint8_t *b, size_t n_A_width);
 void batch_quad_trimat_eval_gf16( unsigned char *y, const unsigned char *trimat, const unsigned char *x, unsigned dim, unsigned size_batch ) {
 #define MAX_O_BYTE      (64/2)
 #define MAX_V_BYTE      (96/2)
@@ -166,11 +169,13 @@ void batch_quad_trimat_eval_gf16( unsigned char *y, const unsigned char *trimat,
 
     gf256v_set_zero( y, size_batch );
     for (unsigned i = 0; i < dim; i += 2) {
-        gf16mat_prod( tmp, trimat, size_batch, dim - i, x + (i / 2) );
+        gf16mat_prod_32_X(tmp, trimat, x + (i / 2),dim - i);
+        //gf16mat_prod( tmp, trimat, size_batch, dim - i, x + (i / 2) );
         gf16v_madd( y, tmp, gf16v_get_ele(x, i), size_batch );
         trimat += (dim - i) * size_batch;
 
-        gf16mat_prod( tmp, trimat, size_batch, dim - i - 1, x2 + (i / 2) );
+        gf16mat_prod_32_X(tmp, trimat, x2 + (i / 2),dim - i - 1);
+        //gf16mat_prod( tmp, trimat, size_batch, dim - i - 1, x2 + (i / 2) );
         gf16v_madd( y, tmp, gf16v_get_ele(x, i + 1), size_batch );
         trimat += (dim - i - 1) * size_batch;
     }
