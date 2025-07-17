@@ -275,7 +275,7 @@ void ov_publicmap( unsigned char *y, const unsigned char *trimat, const unsigned
             trimat += vec_len;
         }
     }   
-       /* 
+       
     // P2
     for (unsigned i = 0; i < v; i++) {
         for (unsigned j = 0; j < o; j++) {
@@ -283,11 +283,11 @@ void ov_publicmap( unsigned char *y, const unsigned char *trimat, const unsigned
         }   
         
         gfv_mul_scalar( _xixj, _x[i], o );
-
+        
         for (unsigned j = 0; j < o; j++) {
             gf256v_madd(y, trimat, _xixj[j], vec_len);
             trimat += vec_len;  
-        }  
+        }   
     }
  
     // P3
@@ -302,6 +302,6 @@ void ov_publicmap( unsigned char *y, const unsigned char *trimat, const unsigned
         for (unsigned j = i; j < o; j++) {
             gf256v_madd(y, trimat, _xixj[j], vec_len);
             trimat += vec_len;
-        } 
-    } */ 
+        }  
+    } 
 } 

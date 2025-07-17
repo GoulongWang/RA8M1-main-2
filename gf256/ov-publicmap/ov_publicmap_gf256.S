@@ -69,77 +69,93 @@ ov_publicmap_gf256_mve:
     cmp r5, #68
     bne 8b 
 
- /* 
-     // P2
+  
+    // P2
     mov r5, #0
     mov r10, r4 // the first addr of _x[i]
-5:  
-    mov r6, #64 
-    add r7, r4, #96 // the first addr of _x[v + j]
-    mov r8, r3      // the first addr of _xixj[j]
-    6:
-        ldrb r9, [r7], #1
-        strb r9, [r8], #1
+13:  
+    add r8, r4, #68  // start addr of _x[v + j]
+    mov r9, r3       // start addr of _xixj[j]
+    mov r6, #44      // num_bytes
+    lsr r7, r6, #4   // cnt = num_bytes / 16
+    cbz r7, 14f      // if cnt = 0, skip
+    15:
+        vldrb.u8 q0, [r8], #16
+        vstrb.u8 q0, [r9], #16
+        subs r7, r7, #1
+        bne 15b
 
-        subs r6, r6, #1
-        bne 6b
+    14:
+        and r7, r6, #0xF // left_bytes = num_bytes % 16
+        cbz r7, 16f
+        vctp.8 r7  // 建立 predicate
+        vpstt
+        vldrbt.u8 q0, [r8]
+        vstrbt.u8 q0, [r9]
+    16:
 
-    mov r6, #64
+    mov r6, #44
     ldrb r7, [r10], #1
     mov r8, r3
-    gf16_vector_scalar r8, r7, r6, r9, q0, q1, q2, q3, q4, q5, q6, q7
- 
-    mov r6, #64
-    mov r7, r3
-    7:
+    gf256_vector_scalar r8, r7, r6, r11, r12, r14, q0, q1, q2, q3
+    sub r8, r8, #44
+    
+    mov r6, #44
+    mov r7, r3 // start addr of _xixj[j]
+    17:
         ldrb r8, [r7], #1 //_xixj[j]
-        vdup.u8 q1, r8    // bb_vector
-        gf16v_madd_mve r0, r1, #32, r8, q1, q2, q3, q4, q5, q6, q7, q0
-        sub r0, r0, #32
-        
+        gf256v_madd_mve r0, r1, r8, #44, r9, r11, r12, q0, q1, q2, q3
         subs r6, r6, #1
-        bne 7b 
- 
+        bne 17b 
+
     add r5, r5, #1
-    cmp r5, #96
-    bne 5b  
- 
+    cmp r5, #68
+    bne 13b  
+
      // P3
     mov r5, #0
-    add r11, r4, #96 // the first addr of _x[v + i] = r4 + 96 + 0
-9:  
-    and r6, r5, #3 
-    sub r6, r5, r6 // r6 = i_start
-    
-    rsb r7, r5, #64
-    add r8, r4, r5 
-    add r8, r8, #96 // the first addr of _x[v + j]
-    add r9, r3, r5  // the first addr of _xixj[j]
-    10:
-        ldrb r10, [r8], #1
-        strb r10, [r9], #1
+    add r10, r4, #68 // the first addr of _x[ v + i]
+18:  
+    add r8, r4, #68  
+    add r8, r8, r5   // start addr of _x[v + j]
+    add r9, r3, r5   // start addr of _xixj[j]
+    rsb r6, r5, #44  // num_bytes
+    lsr r7, r6, #4   // cnt = num_bytes / 16
+    cbz r7, 19f      // if cnt = 0, skip
+    20:
+        vldrb.u8 q0, [r8], #16
+        vstrb.u8 q0, [r9], #16
         subs r7, r7, #1
-        bne 10b
+        bne 20b
 
-    rsb r7, r6, #64    // num_byte = 64 - i_start
-    ldrb r8, [r11], #1 // _x[v + i]
-    add r9, r3, r6     // inout = _xixj + i_start
-    gf16_vector_scalar r9, r8, r7, r10, q0, q1, q2, q3, q4, q5, q6, q7
- 
-    rsb r6, r5, #64
-    add r7, r3, r5 // the first addr of _xixj[j]
-    11:
-        ldrb r8, [r7], #1
-        vdup.u8 q0, r8 // bb_vector
-        gf16v_madd_mve r0, r1, #32, r8, q0, q2, q3, q4, q5, q6, q7, q1
-        sub r0, r0, #32
-         
+    19:
+        and r7, r6, #0xF // left_bytes = num_bytes % 16
+        cbz r7, 21f
+        vctp.8 r7  // 建立 predicate
+        vpstt
+        vldrbt.u8 q0, [r8]
+        vstrbt.u8 q0, [r9]
+    21: 
+
+    and r6, r5, #3 
+    sub r6, r5, r6     // r6 = i_start
+    rsb r7, r6, #44
+    ldrb r8, [r10], #1
+    add r9, r3, r6
+    gf256_vector_scalar r9, r8, r7, r11, r12, r14, q0, q1, q2, q3
+    sub r9, r9, r7
+    
+    rsb r6, r5, #44
+    add r7, r3, r5 // start addr of _xixj[j]
+    22:
+        ldrb r8, [r7], #1 //_xixj[j]
+        gf256v_madd_mve r0, r1, r8, #44, r9, r11, r12, q0, q1, q2, q3
         subs r6, r6, #1
-        bne 11b
- 
+        bne 22b
+
     add r5, r5, #1
-    cmp r5, #64
-    bne 9b */
+    cmp r5, #44
+    bne 18b  
   
     add sp, sp, #512
     pop {r4-r12, r14}
