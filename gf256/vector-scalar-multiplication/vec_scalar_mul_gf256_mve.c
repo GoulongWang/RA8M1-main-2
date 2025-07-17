@@ -13,7 +13,7 @@ void vec_scalar_mul_gf256(uint32_t *out_vec, uint32_t *in_vec, uint8_t scalar);
 int main (void)
 {
     printf("=== GF256 Vector-scalar Multiplication Unit Test ===\n");
-    uint32_t input[4]; // 128 bits
+    uint32_t input[4];
     uint8_t scalar;
     uint32_t output_mve[4];
     uint32_t output_ref[4];
@@ -53,12 +53,22 @@ int main (void)
         vec_scalar_mul_gf256(output_mve, input, scalar);
 
         if(memcmp(&output_mve, &output_ref, sizeof output_ref)){
-            break;
+            printf("output_mve = [ ");
+            for (int i = 0; i < 2; i++) {
+                uint32_t w = output_mve[i];
+                printf("%02x %02x %02x %02x ",
+                        (w >> 24) & 0xFF,
+                        (w >> 16) & 0xFF,
+                        (w >>  8) & 0xFF,
+                        w        & 0xFF);
+            }
+            printf("]\n");
             printf("ERROR!\n");
+            break;
         } else {
             printf("OK!\n");
         }
-    }
+    } 
     return( 0 );
 }
 

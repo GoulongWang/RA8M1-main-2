@@ -4,6 +4,7 @@
 
 // The scalar will be destroyed after vector-scalar multiplication.
 // If you need to use it later, make sure to preserve a copy beforehand.
+// 注意 mask2 處理完後會變成 8 個 1b，不是 16 bytes
 .global vec_scalar_mul_gf256
 .type vec_scalar_mul_gf256, %function
 vec_scalar_mul_gf256:

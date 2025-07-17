@@ -28,6 +28,7 @@
 3:  
     vldrb.u8 \tmp_vec0, [\matA], #16
     mov \tmp0, \gf256_b
+    vmov.u8 \mask_vec2, #0x1b // mask2
     vec_scalar_mul_gf256 \tmp_vec1, \tmp_vec0, \tmp0, \mask_vec, \mask_vec2, \tmp1
     vldrb.u8 \tmp_vec0, [\c]
     veor.u8 \tmp_vec1, \tmp_vec1, \tmp_vec0
@@ -48,6 +49,7 @@
     vldrbt.u8 \tmp_vec0, [\matA]
     add \matA, \matA, \tmp0
     mov \tmp0, \gf256_b
+    vmov.u8 \mask_vec2, #0x1b // mask2
     vec_scalar_mul_gf256 \tmp_vec1, \tmp_vec0, \tmp0, \mask_vec, \mask_vec2, \tmp1
 
     vpsttt

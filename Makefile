@@ -45,6 +45,9 @@ run-trimat-2trimat-madd-gf256.elf: trimat_2trimat_madd_gf256.elf
 run-ov-publicmap-gf16.elf: ov-publicmap-gf16.elf
 	qemu-system-arm -M mps3-an547 -nographic -semihosting -kernel $<
 
+run-ov-publicmap-gf256.elf: ov-publicmap-gf256.elf
+	qemu-system-arm -M mps3-an547 -nographic -semihosting -kernel $<
+
 run-uov-Is.elf: uov-Is.elf
 	qemu-system-arm -M mps3-an547 -nographic -semihosting -kernel $<
 
@@ -73,8 +76,8 @@ mayo_mat.elf: randombytes.c.o $(GF16_MAYO_MAT_OBJS) $(LDSCRIPT) $(LIBDEBS)
 	$(LD) $(LDFLAGS) -o $@ randombytes.c.o $(GF16_MAYO_MAT_OBJS) -Wl,--start-group $(LDLIBS) -Wl,--end-group
 
 GF256_MAT_VEC_MUL_DIR  := gf256/matrix-vector-multiplication/
-GF256_MAT_VEC_MUL_SRCS := $(wildcard $(GF256_VEC_SCALAR_MUL_DIR)/*.c $(GF256_VEC_SCALAR_MUL_DIR)/*.S)
-GF256_MAT_VEC_MUL_OBJS := $(addsuffix .o,$(GF256_VEC_SCALAR_MUL_SRCS))
+GF256_MAT_VEC_MUL_SRCS := $(wildcard $(GF256_MAT_VEC_MUL_DIR)/*.c $(GF256_MAT_VEC_MUL_DIR)/*.S)
+GF256_MAT_VEC_MUL_OBJS := $(addsuffix .o,$(GF256_MAT_VEC_MUL_SRCS))
 mat_vec_mul_gf256.elf: randombytes.c.o $(GF256_MAT_VEC_MUL_OBJS) $(LDSCRIPT) $(LIBDEBS)
 	$(LD) $(LDFLAGS) -o $@ $(GF256_MAT_VEC_MUL_OBJS) randombytes.c.o -Wl,--start-group $(LDLIBS) -Wl,--end-group
 
@@ -102,10 +105,16 @@ UOV_PUBLICMAP_OBJS := $(addsuffix .o,$(UOV_PUBLICMAP_SRCS))
 ov-publicmap-gf16.elf: $(UOV_PUBLICMAP_OBJS) randombytes.c.o $(LDSCRIPT) $(LIBDEBS)
 	$(LD) $(LDFLAGS) -o $@ $(UOV_PUBLICMAP_OBJS) randombytes.c.o -Wl,--start-group $(LDLIBS) -Wl,--end-group
 
+OV_PUBLICMAP_DIR  := gf256/ov-publicmap
+OV_PUBLICMAP_SRCS := $(wildcard $(OV_PUBLICMAP_DIR)/*.c $(OV_PUBLICMAP_DIR)/*.S)
+OV_PUBLICMAP_OBJS := $(addsuffix .o,$(OV_PUBLICMAP_SRCS))
+ov-publicmap-gf256.elf: $(OV_PUBLICMAP_OBJS) randombytes.c.o $(LDSCRIPT) $(LIBDEBS)
+	$(LD) $(LDFLAGS) -o $@ $(OV_PUBLICMAP_OBJS) randombytes.c.o -Wl,--start-group $(LDLIBS) -Wl,--end-group
+
 UOV_IS_DIR := gf16/UOV-Is
 UOV_IS_SRCS := $(wildcard $(UOV_IS_DIR)/*.c $(UOV_IS_DIR)/*.S)
 UOV_IS_OBJS := $(patsubst %.c,%.c.o,$(UOV_IS_SRCS))
-uov-Is.elf: $(UOV_IP_OBJS) $(LDSCRIPT) $(LIBDEBS)
+uov-Is.elf: $(UOV_IS_OBJS) $(LDSCRIPT) $(LIBDEBS)
 	$(LD) $(LDFLAGS) -o $@ $(UOV_IS_OBJS) -Wl,--start-group $(LDLIBS) -Wl,--end-group
 
 UOV_IP_DIR := gf256/UOV-Ip
