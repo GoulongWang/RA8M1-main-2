@@ -1,3 +1,4 @@
+// This macro processes exactly 16 bytes.
 .macro vec_scalar_mul_gf256 out_vec, in_vec, scalar, mask_vec, mask_vec2, tmp0
     ands \tmp0, \scalar, #1
     neg \tmp0, \tmp0
@@ -24,4 +25,39 @@
     .endr
     //subs \tmp1, \tmp1, #1
     //bne 0b
+.endm
+
+.macro gf256_vector_scalar inout_ptr, gf256_b, num_bytes, tmp0, tmp1, tmp2, out_vec, in_vec, mask_vec, mask_vec2
+    lsr \tmp0, \num_bytes, #4
+    cmp \tmp0, #0
+    beq 10f
+11:    
+	vldrb.u8 \in_vec, [\inout_ptr]
+    mov \tmp2, \gf256_b
+
+    vmov.u8 \mask_vec2, #0x1b // mask2
+    vec_scalar_mul_gf256 \out_vec, \in_vec, \tmp2, \mask_vec, \mask_vec2, \tmp1
+    vstrb.u8 \out_vec, [\inout_ptr], #16
+
+    subs \tmp0, \tmp0, #1
+    bne 11b
+
+10:
+    // process  < 16 bytes
+    and \tmp0, \num_bytes, #0xF
+    cmp \tmp0, #0
+    beq 12f
+    
+    vctp.8 \tmp0
+    vpst
+    vldrbt.u8 \in_vec, [\inout_ptr]
+
+    mov \tmp2, \gf256_b
+    vmov.u8 \mask_vec2, #0x1b // mask2
+    vec_scalar_mul_gf256 \out_vec, \in_vec, \tmp2, \mask_vec, \mask_vec2, \tmp1
+    
+    vpst
+    vstrbt.u8 \out_vec, [\inout_ptr]
+    add \inout_ptr, \inout_ptr, \tmp0
+12: 
 .endm
