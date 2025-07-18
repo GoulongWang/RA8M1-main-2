@@ -454,6 +454,7 @@ void benchmark_gf256ov_publicmap(){
 
     bench_cycles(ov_publicmap(acc, P, sig), cycles);
     bench_cycles(ov_publicmap_gf256_mve(acc_mve, P, sig), cycles);
+    bench_cycles(gf256trimat_eval_m4f_112_44_publicinputs(acc_m4, P, sig), cycles);
     
     printf((fail) ? "TEST FAIL.!\n" : "TEST PASS.\n");
     printf("Average ref cycles = %lu\n", sum_ref / TEST_RUN);
