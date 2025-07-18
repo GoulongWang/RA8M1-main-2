@@ -1,7 +1,6 @@
 .syntax unified
 
-#include "ov_publicmap_gf256.i"
-#include "../matrix-vector-multiplication/mat_vec_mul_gf256_mve.i"
+#include "mat_vec_mul_gf256_mve.i"
 
 // void ov_publicmap_gf256_mve( unsigned char *y, const unsigned char *trimat, const unsigned char *x );
 .global ov_publicmap_gf256_mve
@@ -15,7 +14,6 @@ ov_publicmap_gf256_mve:
 
     gf256v_set_zero_mve r3, r5, q0, #256
     gf256v_set_zero_mve r0, r5, q0, #44
-    //gf256v_set_zero_mve r4, r5, q0, #256
 
     mov r5, #7
     mov r6, r2 // &x[0]

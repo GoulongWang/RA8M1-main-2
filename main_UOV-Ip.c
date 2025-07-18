@@ -49,7 +49,7 @@ ITCM_FN int main(void) {
             break;
         }
         //sm + *mlen = 352 - 256
-        r2 = crypto_sign_open( m, &mlen, sm, smlen, pk );
+        bench_cycles2(crypto_sign_open( m, &mlen, sm, smlen, pk ), cycles, r2); // mve
         if ( 0 != r2 ) {
             printf("crypto_sign_open() return %d.\n", r2);
             fail = -1;

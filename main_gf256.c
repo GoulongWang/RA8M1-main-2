@@ -17,6 +17,7 @@
 
 #define gf256v_add _gf256v_add_u32
 #define gf256v_madd _gf256v_madd_u32
+#define gfv_mul_scalar _gf256v_mul_scalar_u32
 
 #define TEST_RUN 100
 #define BHEIGHT      68
@@ -24,11 +25,23 @@
 #define BWIDTH       44
 #define SIZE_BATCH   44
 
+#define N 112
+#define M 44
+#define _MAX_N 256
+#define TMPVEC_LEN 128
+#define _PUB_N 112
+#define _PUB_M 44
+#define _O (_PUB_M)
+#define _V ((_PUB_N)-(_O))
+#define _PUB_M_BYTE (_PUB_M )
+#define _GFSIZE 256
+
 void gf256mat_prod_1936_68(uint8_t *c, const uint8_t *matA, const uint8_t *b);
 void gf256mat_prod_68_44(uint8_t *c, const uint8_t *matA, const uint8_t *b);
 void gf256mat_prod_44_X(uint8_t *c, const uint8_t *matA, const uint8_t *b, size_t n_A_width);
 void batch_2trimat_madd_gf256_mve( unsigned char *bC, const unsigned char *btriA,
     const unsigned char *B, unsigned Bheight, unsigned size_Bcolvec, unsigned Bwidth, unsigned size_batch );
+void ov_publicmap_gf256_mve( unsigned char *y, const unsigned char *trimat, const unsigned char *x );
 
 void gf256mat_prod_m4f_1936_68_normal_normal(uint32_t *c, uint32_t *a, uint8_t *b);
 void gf256mat_prod_m4f_68_44_normal_normal(uint32_t *c, uint32_t *a, uint8_t *b);
@@ -39,15 +52,17 @@ void benchmark_gf256mat_prod_1936_68();
 void benchmark_gf256mat_prod_68_44(); 
 void benchmark_gf256mat_prod_44_X();
 void benchmark_gf256trimat_2trimat_madd_68_68_44_44();
+void benchmark_gf256ov_publicmap();
 
 ITCM_FN int main (void)
 {
     Utils_Init();
     PMU_Init();
-    benchmark_gf256mat_prod_1936_68();
-    benchmark_gf256mat_prod_68_44(); 
-    benchmark_gf256mat_prod_44_X(); 
-    benchmark_gf256trimat_2trimat_madd_68_68_44_44();
+    benchmark_gf256ov_publicmap();
+    // benchmark_gf256mat_prod_1936_68();
+    // benchmark_gf256mat_prod_68_44(); 
+    // benchmark_gf256mat_prod_44_X(); 
+    // benchmark_gf256trimat_2trimat_madd_68_68_44_44();
     return( 0 );
 }
 
@@ -261,6 +276,184 @@ static void print_u64(uint64_t v){
     } else {
         printf("%lu\n", (uint32_t)v);
     }
+}
+
+static inline uint8_t gf256v_get_ele(const uint8_t *a, unsigned i) {
+    return a[i];
+}
+
+static inline void _gf256v_mul_scalar_u32_aligned(uint8_t *a, uint8_t b, unsigned _num_byte) {
+
+    while ( _num_byte >= 4 ) {
+        uint32_t *ax = (uint32_t *)a;
+        ax[0] = gf256v_mul_u32( ax[0], b );
+        a += 4;
+        _num_byte -= 4;
+    }
+    if ( 0 == _num_byte ) {
+        return;
+    }
+
+    union tmp_32 {
+        uint8_t u8[4];
+        uint32_t u32;
+    } t;
+    for (unsigned i = 0; i < _num_byte; i++) {
+        t.u8[i] = a[i];
+    }
+    #if defined(_VALGRIND_)
+    VALGRIND_MAKE_MEM_DEFINED(&t.u32, 4);
+    #endif
+    t.u32 = gf256v_mul_u32(t.u32, b);
+    for (unsigned i = 0; i < _num_byte; i++) {
+        a[i] = t.u8[i];
+    }
+}
+
+static inline void _gf256v_mul_scalar_u32(uint8_t *a, uint8_t b, unsigned _num_byte) {
+
+    uintptr_t ap = (uintptr_t)(const void *)a;
+    if ( !((ap & 3) || (_num_byte < 8)) ) {
+        _gf256v_mul_scalar_u32_aligned(a, b, _num_byte);
+        return;
+    }
+
+    union tmp_32 {
+        uint8_t u8[4];
+        uint32_t u32;
+    } t;
+
+    while ( _num_byte >= 4 ) {
+        t.u8[0] = a[0];
+        t.u8[1] = a[1];
+        t.u8[2] = a[2];
+        t.u8[3] = a[3];
+        t.u32 = gf256v_mul_u32(t.u32, b);
+        a[0] = t.u8[0];
+        a[1] = t.u8[1];
+        a[2] = t.u8[2];
+        a[3] = t.u8[3];
+        a += 4;
+        _num_byte -= 4;
+    }
+    if ( 0 == _num_byte ) {
+        return;
+    }
+
+    for (unsigned i = 0; i < _num_byte; i++) {
+        t.u8[i] = a[i];
+    }
+    #if defined(_VALGRIND_)
+    VALGRIND_MAKE_MEM_DEFINED(&t.u32, 4);
+    #endif
+    t.u32 = gf256v_mul_u32(t.u32, b);
+    for (unsigned i = 0; i < _num_byte; i++) {
+        a[i] = t.u8[i];
+    }
+
+}
+
+void ov_publicmap( unsigned char *y, const unsigned char *trimat, const unsigned char *x ) {
+    uint8_t _xixj[_MAX_N] = {0};
+    uint8_t _x[_MAX_N];
+    unsigned v = _V;
+    unsigned o = _PUB_N - _V;
+    unsigned vec_len = _PUB_M_BYTE;
+
+    for (unsigned i = 0; i < _PUB_N; i++) {
+        _x[i] =  gf256v_get_ele( x, i );
+    }
+    
+    // P1
+    for (unsigned i = 0; i < _V; i++) {
+        unsigned i_start = i - (i & 3);
+        for (unsigned j = i; j < _V; j++) {
+            _xixj[j] = _x[j];
+        }
+        
+        gfv_mul_scalar( _xixj + i_start, _x[i], v - i_start );      
+        
+        for (unsigned j = i; j <  v; j++) {
+            gf256v_madd(y, trimat, _xixj[j], vec_len);
+            trimat += vec_len;
+        }
+    }   
+       
+    // P2
+    for (unsigned i = 0; i < v; i++) {
+        for (unsigned j = 0; j < o; j++) {
+            _xixj[j] = _x[v + j];
+        }   
+        
+        gfv_mul_scalar( _xixj, _x[i], o );
+        
+        for (unsigned j = 0; j < o; j++) {
+            gf256v_madd(y, trimat, _xixj[j], vec_len);
+            trimat += vec_len;  
+        }   
+    }
+ 
+    // P3
+    for (unsigned i = 0; i < o; i++) {
+        unsigned i_start = i - (i & 3);
+        for (unsigned j = i; j < o; j++) {
+            _xixj[j] = _x[v + j];
+        }
+         
+        gfv_mul_scalar( _xixj + i_start, _x[v + i], o - i_start );
+        
+        for (unsigned j = i; j < o; j++) {
+            gf256v_madd(y, trimat, _xixj[j], vec_len);
+            trimat += vec_len;
+        }  
+    } 
+}
+
+void benchmark_gf256ov_publicmap(){
+    printf("=== Benchmark UOV-Ip: ov_publicmap ===\n");
+    uint32_t sum_ref = 0, sum_mve = 0, sum_m4 = 0;
+    uint32_t cycles;
+
+    uint8_t P[M * N * (N + 1) / 2];
+    uint8_t sig[N];
+    uint8_t acc[M], acc_mve[M];
+    
+    int fail = 0;
+    for (int l = 1; l <= TEST_RUN; l++) {
+        memset(acc, 0, sizeof(acc));
+        memset(acc_mve, 0, sizeof(acc_mve));
+        randombytes(P, sizeof(P));
+        randombytes(sig, sizeof sig);
+
+        bench_cycles3(ov_publicmap(acc, P, sig), cycles);
+        sum_ref += cycles;
+        bench_cycles3(ov_publicmap_gf256_mve(acc_mve, P, sig), cycles);
+        sum_mve += cycles;
+        
+        if(memcmp(acc_mve, acc, sizeof(acc))){
+            printf("acc_ref = [");
+            for (int i = 0; i < sizeof(acc); i++) {
+                printf("%02x ", acc[i]);
+            }
+            printf("]\n");
+
+            printf("acc_mve = [");
+            for (int i = 0; i < sizeof(acc_mve); i++) {
+                printf("%02x ", acc_mve[i]);
+            }
+            printf("]\n"); 
+            fail = 1;
+            break;
+        }
+    }
+
+    bench_cycles(ov_publicmap(acc, P, sig), cycles);
+    bench_cycles(ov_publicmap_gf256_mve(acc_mve, P, sig), cycles);
+    
+    printf((fail) ? "TEST FAIL.!\n" : "TEST PASS.\n");
+    printf("Average ref cycles = %lu\n", sum_ref / TEST_RUN);
+    printf("Average MVE cycles = %lu\n", sum_mve / TEST_RUN);
+    printf("Average M4 cycles = %lu\n", sum_m4 / TEST_RUN);
 }
 
 void benchmark_gf256mat_prod_1936_68(){
